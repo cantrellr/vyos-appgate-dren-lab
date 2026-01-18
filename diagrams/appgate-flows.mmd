@@ -1,0 +1,18 @@
+flowchart TB
+  BYOD[External BYOD User]
+  AVD[AVD Clients\nAppgate Client/Agent]
+  GW1[SDPG Gateway]
+  GW2[SDPT Connector]
+  CTRL[SDPC Controller]
+  PR[Protected Resources\nInside + Dev + SEG]
+
+  BYOD -->|AVD access Microsoft AVD broker/control plane| AVD
+  AVD -->|TCP 443 optional UDP 443/53| CTRL
+  AVD -->|TCP 443 / UDP 443 / UDP 53| GW1
+  CTRL -->|TCP 443 / TCP 444| GW1
+  CTRL -->|TCP 443 / TCP 444| GW2
+  AVD -->|TCP 443 / UDP 443 / UDP 53| GW2
+  GW1 -->|22/80/443/445/3389 + DB ports| PR
+  GW2 -->|22/80/443/445/3389 + DB ports| PR
+
+  

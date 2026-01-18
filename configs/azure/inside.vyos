@@ -1,0 +1,17 @@
+configure
+set system host-name 'AZ-PROTON-INSIDE'
+
+# Uplink to SDPC subnet
+set interfaces ethernet eth0 description 'UPLINK-SDPC'
+set interfaces ethernet eth0 address '10.0.0.2/24'
+
+set interfaces ethernet eth1 description 'DOMAIN'
+set interfaces ethernet eth1 address '10.1.0.1/24'
+
+set interfaces ethernet eth2 description 'DOMSVC'
+set interfaces ethernet eth2 address '10.1.1.1/24'
+
+set protocols static route '0.0.0.0/0' next-hop '10.0.0.1'
+commit
+save
+exit

@@ -1,0 +1,54 @@
+configure
+set system host-name 'ONPREM-OUT'
+
+# UNDERLAY: replace with your real on-prem transport IP that can reach AZ Outside underlay
+set interfaces ethernet eth0 description 'UNDERLAY'
+set interfaces ethernet eth0 address '255.254.2.2/24'
+
+# DREN
+set interfaces ethernet eth1 description 'DREN'
+set interfaces ethernet eth1 address '254.254.2.1/24'
+
+# Route local site internal via Grey
+set protocols static route '20.0.0.0/8' next-hop '254.254.2.2'
+
+# Route remote site internal via VTI
+set protocols static route '10.0.0.0/8' interface 'vti0'
+
+# Underlay default route (replace next-hop to your on-prem transport gateway)
+set protocols static route '0.0.0.0/0' next-hop '255.254.2.1'
+
+# Policy route: DOMAIN pool internet egress via AZ WAN (VTI)
+set policy route AZ-WAN-EGRESS rule 10 description 'DOMAIN pool egress via AZ WAN'
+set policy route AZ-WAN-EGRESS rule 10 source address '20.1.0.20-20.1.0.29'
+set policy route AZ-WAN-EGRESS rule 10 set table '100'
+set interfaces ethernet eth1 policy route 'AZ-WAN-EGRESS'
+
+# Route table for AZ WAN egress (VTI)
+set protocols static table 100 route '0.0.0.0/0' interface 'vti0'
+
+# VTI
+set interfaces vti vti0 address '172.31.255.2/30'
+set interfaces vti vti0 description 'DREN-to-AZURE-VTI'
+
+set vpn ipsec ike-group DREN-IKE key-exchange 'ikev2'
+set vpn ipsec ike-group DREN-IKE proposal 1 dh-group '14'
+set vpn ipsec ike-group DREN-IKE proposal 1 encryption 'aes256'
+set vpn ipsec ike-group DREN-IKE proposal 1 hash 'sha256'
+
+set vpn ipsec esp-group DREN-ESP proposal 1 encryption 'aes256'
+set vpn ipsec esp-group DREN-ESP proposal 1 hash 'sha256'
+set vpn ipsec esp-group DREN-ESP pfs 'enable'
+set vpn ipsec esp-group DREN-ESP compression 'disable'
+
+# Peer placeholder: AZ Outside underlay assumed 255.254.1.2
+set vpn ipsec site-to-site peer '255.254.1.2' authentication mode 'pre-shared-secret'
+set vpn ipsec site-to-site peer '255.254.1.2' authentication pre-shared-secret 'REPLACE_WITH_PSK'
+set vpn ipsec site-to-site peer '255.254.1.2' ike-group 'DREN-IKE'
+set vpn ipsec site-to-site peer '255.254.1.2' esp-group 'DREN-ESP'
+set vpn ipsec site-to-site peer '255.254.1.2' local-address '255.254.2.2'
+set vpn ipsec site-to-site peer '255.254.1.2' vti bind 'vti0'
+
+commit
+save
+exit

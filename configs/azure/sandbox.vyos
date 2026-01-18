@@ -1,0 +1,29 @@
+configure
+set system host-name 'AZ-PROTON-SANDBOX'
+
+set interfaces ethernet eth0 description 'UPLINK-SDPC'
+set interfaces ethernet eth0 address '10.0.0.4/24'
+
+set interfaces ethernet eth1 description 'SEG'
+set interfaces ethernet eth1 address '10.3.0.1/24'
+
+# No HWIL subnet in Azure per spreadsheet
+
+set protocols static route '0.0.0.0/0' next-hop '10.0.0.1'
+
+# Optional hardening: restrict SEG egress to Grey only
+set firewall ipv4 name SEG-IN default-action 'drop'
+set firewall ipv4 name SEG-IN rule 10 action 'accept'
+set firewall ipv4 name SEG-IN rule 10 state established 'enable'
+set firewall ipv4 name SEG-IN rule 10 state related 'enable'
+set firewall ipv4 name SEG-IN rule 20 action 'accept'
+set firewall ipv4 name SEG-IN rule 20 state new 'enable'
+set firewall ipv4 name SEG-IN rule 20 destination address '10.0.0.1'
+set firewall ipv4 name SEG-IN rule 30 action 'accept'
+set firewall ipv4 name SEG-IN rule 30 state new 'enable'
+set firewall ipv4 name SEG-IN rule 30 destination address '10.3.0.1'
+set interfaces ethernet eth1 firewall in name 'SEG-IN'
+
+commit
+save
+exit

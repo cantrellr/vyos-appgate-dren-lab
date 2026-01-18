@@ -1,0 +1,196 @@
+configure
+set system host-name 'ONPREM-GREY'
+
+set interfaces ethernet eth0 description 'DREN'
+set interfaces ethernet eth0 address '254.254.2.2/24'
+
+set interfaces ethernet eth1 description 'SDPC'
+set interfaces ethernet eth1 address '20.0.0.1/24'
+
+set interfaces ethernet eth2 description 'SDPG'
+set interfaces ethernet eth2 address '20.0.1.1/24'
+
+set interfaces ethernet eth3 description 'SDPT'
+set interfaces ethernet eth3 address '20.0.2.1/24'
+
+set interfaces ethernet eth4 description 'AVD'
+set interfaces ethernet eth4 address '20.0.3.1/24'
+
+# Default route to Outside (DREN) for internet-bound traffic
+set protocols static route '0.0.0.0/0' next-hop '254.254.2.1'
+
+# Route Azure internal via Outside on DREN
+set protocols static route '10.0.0.0/8' next-hop '254.254.2.1'
+
+# Downstream protected subnets via router uplinks on SDPC (assumption)
+set protocols static route '20.1.0.0/24' next-hop '20.0.0.2'
+set protocols static route '20.1.1.0/24' next-hop '20.0.0.2'
+set protocols static route '20.2.0.0/24' next-hop '20.0.0.3'
+set protocols static route '20.2.1.0/24' next-hop '20.0.0.3'
+set protocols static route '20.3.0.0/24' next-hop '20.0.0.4'
+set protocols static route '20.3.1.0/24' next-hop '20.0.0.4'
+
+# Firewall zones
+set firewall zone DREN interface 'eth0'
+set firewall zone SDPC interface 'eth1'
+set firewall zone SDPG interface 'eth2'
+set firewall zone SDPT interface 'eth3'
+set firewall zone AVD  interface 'eth4'
+
+# Network groups
+set firewall group network-group LOCAL_GW network '20.0.1.0/24'
+set firewall group network-group LOCAL_GW network '20.0.2.0/24'
+set firewall group network-group LOCAL_SDPC network '20.0.0.0/24'
+set firewall group network-group REMOTE_GW network '10.0.1.0/24'
+set firewall group network-group REMOTE_GW network '10.0.2.0/24'
+
+set firewall group network-group LOCAL_DOWNSTREAM network '20.1.0.0/24'
+set firewall group network-group LOCAL_DOWNSTREAM network '20.1.1.0/24'
+set firewall group network-group LOCAL_DOWNSTREAM network '20.2.0.0/24'
+set firewall group network-group LOCAL_DOWNSTREAM network '20.2.1.0/24'
+set firewall group network-group LOCAL_DOWNSTREAM network '20.3.0.0/24'
+
+set firewall group network-group REMOTE_DOWNSTREAM network '10.1.0.0/24'
+set firewall group network-group REMOTE_DOWNSTREAM network '10.1.1.0/24'
+set firewall group network-group REMOTE_DOWNSTREAM network '10.2.0.0/24'
+set firewall group network-group REMOTE_DOWNSTREAM network '10.2.1.0/24'
+set firewall group network-group REMOTE_DOWNSTREAM network '10.3.0.0/24'
+
+# SDPC -> Gateways (local)
+set firewall ipv4 name SDPC-TO-GW default-action 'drop'
+set firewall ipv4 name SDPC-TO-GW rule 10 action 'accept'
+set firewall ipv4 name SDPC-TO-GW rule 10 state established 'enable'
+set firewall ipv4 name SDPC-TO-GW rule 10 state related 'enable'
+
+set firewall ipv4 name SDPC-TO-GW rule 20 action 'accept'
+set firewall ipv4 name SDPC-TO-GW rule 20 state new 'enable'
+set firewall ipv4 name SDPC-TO-GW rule 20 protocol 'tcp'
+set firewall ipv4 name SDPC-TO-GW rule 20 destination group network-group 'LOCAL_GW'
+set firewall ipv4 name SDPC-TO-GW rule 20 destination port '443'
+
+set firewall ipv4 name SDPC-TO-GW rule 30 action 'accept'
+set firewall ipv4 name SDPC-TO-GW rule 30 state new 'enable'
+set firewall ipv4 name SDPC-TO-GW rule 30 protocol 'tcp'
+set firewall ipv4 name SDPC-TO-GW rule 30 destination group network-group 'LOCAL_GW'
+set firewall ipv4 name SDPC-TO-GW rule 30 destination port '444'
+
+# SDPC -> remote gateways over DREN
+set firewall ipv4 name SDPC-TO-DREN-GW default-action 'drop'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 10 action 'accept'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 10 state established 'enable'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 10 state related 'enable'
+
+set firewall ipv4 name SDPC-TO-DREN-GW rule 20 action 'accept'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 20 state new 'enable'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 20 protocol 'tcp'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 20 destination group network-group 'REMOTE_GW'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 20 destination port '443'
+
+set firewall ipv4 name SDPC-TO-DREN-GW rule 30 action 'accept'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 30 state new 'enable'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 30 protocol 'tcp'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 30 destination group network-group 'REMOTE_GW'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 30 destination port '444'
+
+# AVD -> Gateways (client)
+set firewall ipv4 name AVD-TO-GW default-action 'drop'
+set firewall ipv4 name AVD-TO-GW rule 10 action 'accept'
+set firewall ipv4 name AVD-TO-GW rule 10 state established 'enable'
+set firewall ipv4 name AVD-TO-GW rule 10 state related 'enable'
+
+set firewall ipv4 name AVD-TO-GW rule 20 action 'accept'
+set firewall ipv4 name AVD-TO-GW rule 20 state new 'enable'
+set firewall ipv4 name AVD-TO-GW rule 20 protocol 'tcp'
+set firewall ipv4 name AVD-TO-GW rule 20 destination group network-group 'LOCAL_GW'
+set firewall ipv4 name AVD-TO-GW rule 20 destination port '443'
+
+set firewall ipv4 name AVD-TO-GW rule 30 action 'accept'
+set firewall ipv4 name AVD-TO-GW rule 30 state new 'enable'
+set firewall ipv4 name AVD-TO-GW rule 30 protocol 'udp'
+set firewall ipv4 name AVD-TO-GW rule 30 destination group network-group 'LOCAL_GW'
+set firewall ipv4 name AVD-TO-GW rule 30 destination port '443'
+
+set firewall ipv4 name AVD-TO-GW rule 40 action 'accept'
+set firewall ipv4 name AVD-TO-GW rule 40 state new 'enable'
+set firewall ipv4 name AVD-TO-GW rule 40 protocol 'udp'
+set firewall ipv4 name AVD-TO-GW rule 40 destination group network-group 'LOCAL_GW'
+set firewall ipv4 name AVD-TO-GW rule 40 destination port '53'
+
+# AVD -> SDPC (client/control-plane): TCP 443 (optional UDP 443/53)
+set firewall ipv4 name AVD-TO-SDPC default-action 'drop'
+set firewall ipv4 name AVD-TO-SDPC rule 10 action 'accept'
+set firewall ipv4 name AVD-TO-SDPC rule 10 state established 'enable'
+set firewall ipv4 name AVD-TO-SDPC rule 10 state related 'enable'
+
+set firewall ipv4 name AVD-TO-SDPC rule 20 action 'accept'
+set firewall ipv4 name AVD-TO-SDPC rule 20 state new 'enable'
+set firewall ipv4 name AVD-TO-SDPC rule 20 protocol 'tcp'
+set firewall ipv4 name AVD-TO-SDPC rule 20 destination group network-group 'LOCAL_SDPC'
+set firewall ipv4 name AVD-TO-SDPC rule 20 destination port '443'
+
+set firewall ipv4 name AVD-TO-SDPC rule 30 action 'accept'
+set firewall ipv4 name AVD-TO-SDPC rule 30 state new 'enable'
+set firewall ipv4 name AVD-TO-SDPC rule 30 protocol 'udp'
+set firewall ipv4 name AVD-TO-SDPC rule 30 destination group network-group 'LOCAL_SDPC'
+set firewall ipv4 name AVD-TO-SDPC rule 30 destination port '443'
+
+set firewall ipv4 name AVD-TO-SDPC rule 40 action 'accept'
+set firewall ipv4 name AVD-TO-SDPC rule 40 state new 'enable'
+set firewall ipv4 name AVD-TO-SDPC rule 40 protocol 'udp'
+set firewall ipv4 name AVD-TO-SDPC rule 40 destination group network-group 'LOCAL_SDPC'
+set firewall ipv4 name AVD-TO-SDPC rule 40 destination port '53'
+
+# Gateways -> downstream local
+set firewall ipv4 name GW-TO-LOCAL-DOWN default-action 'drop'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 10 action 'accept'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 10 state established 'enable'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 10 state related 'enable'
+
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 20 action 'accept'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 20 state new 'enable'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 20 protocol 'tcp'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 20 destination group network-group 'LOCAL_DOWNSTREAM'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 20 destination port group 'PROTECTED_TCP'
+
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 30 action 'accept'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 30 state new 'enable'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 30 protocol 'udp'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 30 destination group network-group 'LOCAL_DOWNSTREAM'
+set firewall ipv4 name GW-TO-LOCAL-DOWN rule 30 destination port group 'PROTECTED_UDP'
+
+# Gateways -> downstream remote
+set firewall ipv4 name GW-TO-REMOTE-DOWN default-action 'drop'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 10 action 'accept'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 10 state established 'enable'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 10 state related 'enable'
+
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 20 action 'accept'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 20 state new 'enable'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 20 protocol 'tcp'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 20 destination group network-group 'REMOTE_DOWNSTREAM'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 20 destination port group 'PROTECTED_TCP'
+
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 30 action 'accept'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 30 state new 'enable'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 30 protocol 'udp'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 30 destination group network-group 'REMOTE_DOWNSTREAM'
+set firewall ipv4 name GW-TO-REMOTE-DOWN rule 30 destination port group 'PROTECTED_UDP'
+
+# Bind policies
+set firewall zone SDPG from SDPC firewall name 'SDPC-TO-GW'
+set firewall zone SDPT from SDPC firewall name 'SDPC-TO-GW'
+set firewall zone DREN from SDPC firewall name 'SDPC-TO-DREN-GW'
+
+set firewall zone SDPG from AVD firewall name 'AVD-TO-GW'
+set firewall zone SDPT from AVD firewall name 'AVD-TO-GW'
+set firewall zone SDPC from AVD firewall name 'AVD-TO-SDPC'
+
+set firewall zone SDPC from SDPG firewall name 'GW-TO-LOCAL-DOWN'
+set firewall zone SDPC from SDPT firewall name 'GW-TO-LOCAL-DOWN'
+
+set firewall zone DREN from SDPG firewall name 'GW-TO-REMOTE-DOWN'
+set firewall zone DREN from SDPT firewall name 'GW-TO-REMOTE-DOWN'
+
+commit
+save
+exit

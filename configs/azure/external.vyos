@@ -1,0 +1,14 @@
+configure
+set system host-name 'AZ-PROTON-EXT'
+
+# WAN segment
+set interfaces ethernet eth0 description 'WAN-SEGMENT'
+set interfaces ethernet eth0 address '255.254.1.1/24'
+
+# Route Azure internal + DREN back to Outside on the WAN segment
+set protocols static route '254.254.1.0/24' next-hop '255.254.1.2'
+set protocols static route '10.0.0.0/8' next-hop '255.254.1.2'
+
+commit
+save
+exit

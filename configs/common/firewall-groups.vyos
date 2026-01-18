@@ -1,0 +1,30 @@
+# Common firewall port-groups for Appgate + protected resources
+# Apply on BOTH Grey routers.
+
+configure
+
+# Appgate ports
+set firewall group port-group APPGATE_CLIENT_TCP port '443'
+set firewall group port-group APPGATE_CLIENT_UDP port '443'
+set firewall group port-group APPGATE_DNS_UDP port '53'
+set firewall group port-group APPGATE_CTRL_TCP port '444'
+set firewall group port-group APPGATE_ADMIN_TCP port '8443'
+
+# Protected resource ports (TCP)
+set firewall group port-group PROTECTED_TCP port '22'
+set firewall group port-group PROTECTED_TCP port '80'
+set firewall group port-group PROTECTED_TCP port '443'
+set firewall group port-group PROTECTED_TCP port '445'
+set firewall group port-group PROTECTED_TCP port '3389'
+set firewall group port-group PROTECTED_TCP port '1433'
+set firewall group port-group PROTECTED_TCP port '1521'
+set firewall group port-group PROTECTED_TCP port '3306'
+set firewall group port-group PROTECTED_TCP port '5432'
+set firewall group port-group PROTECTED_TCP port '27017'
+
+# Optional RDP UDP (performance)
+set firewall group port-group PROTECTED_UDP port '3389'
+
+commit
+save
+exit
