@@ -1,5 +1,5 @@
 configure
-set system host-name 'AZ-PROTON-INSIDE'
+set system host-name 'az-proton-inside'
 
 # Uplink to SDPC subnet
 set interfaces ethernet eth0 description 'UPLINK-SDPC'

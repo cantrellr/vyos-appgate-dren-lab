@@ -1,5 +1,5 @@
 configure
-set system host-name 'AZ-PROTON-GREY'
+set system host-name 'az-proton-grey'
 
 # DREN
 set interfaces ethernet eth0 description 'DREN'
@@ -52,6 +52,8 @@ set firewall group network-group LOCAL_DOWNSTREAM network '10.2.0.0/24'
 set firewall group network-group LOCAL_DOWNSTREAM network '10.2.1.0/24'
 set firewall group network-group LOCAL_DOWNSTREAM network '10.3.0.0/24'
 
+set firewall group network-group INTERNET_POOL_DOMAIN network '10.1.0.21-10.1.0.29'
+
 set firewall group network-group REMOTE_DOWNSTREAM network '20.1.0.0/24'
 set firewall group network-group REMOTE_DOWNSTREAM network '20.1.1.0/24'
 set firewall group network-group REMOTE_DOWNSTREAM network '20.2.0.0/24'
@@ -80,6 +82,24 @@ set firewall ipv4 name SDPC-TO-DREN-GW default-action 'drop'
 set firewall ipv4 name SDPC-TO-DREN-GW rule 10 action 'accept'
 set firewall ipv4 name SDPC-TO-DREN-GW rule 10 state established 'enable'
 set firewall ipv4 name SDPC-TO-DREN-GW rule 10 state related 'enable'
+
+set firewall ipv4 name SDPC-TO-DREN-GW rule 15 action 'accept'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 15 state new 'enable'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 15 protocol 'udp'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 15 source group network-group 'INTERNET_POOL_DOMAIN'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 15 destination port '53'
+
+set firewall ipv4 name SDPC-TO-DREN-GW rule 16 action 'accept'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 16 state new 'enable'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 16 protocol 'tcp'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 16 source group network-group 'INTERNET_POOL_DOMAIN'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 16 destination port '80'
+
+set firewall ipv4 name SDPC-TO-DREN-GW rule 17 action 'accept'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 17 state new 'enable'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 17 protocol 'tcp'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 17 source group network-group 'INTERNET_POOL_DOMAIN'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 17 destination port '443'
 
 set firewall ipv4 name SDPC-TO-DREN-GW rule 20 action 'accept'
 set firewall ipv4 name SDPC-TO-DREN-GW rule 20 state new 'enable'

@@ -1,5 +1,5 @@
 configure
-set system host-name 'ONPREM-DEV'
+set system host-name 'onp-dev'
 
 set interfaces ethernet eth0 description 'UPLINK-SDPC'
 set interfaces ethernet eth0 address '20.0.0.3/24'

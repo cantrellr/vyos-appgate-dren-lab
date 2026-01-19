@@ -22,7 +22,7 @@ It implements:
 - `configs/onprem/*.vyos` – On-Prem site router configs
 - `configs/common/*.vyos` – reusable groups/policies
 - `diagrams/*.mmd` – Mermaid diagrams
-- `scripts/` – helper scripts for automation (SSH push pattern)
+- `scripts/` – helper scripts for automation (deploy, cleanup, SSH push)
 
 ## Quick start
 1. Review **assumptions** in `docs/System-Design.md` (especially the underlay IPs for the IPsec tunnel and the SDPC transit IPs for Inside/Dev/Sandbox routers).
@@ -32,9 +32,51 @@ It implements:
    - On-Prem Outside → On-Prem Grey → On-Prem Inside/Developer/Sandbox
 4. Validate tunnel + routing + policy using the Runbook.
 
+## Hyper-V deployment (one command)
+The end-to-end Hyper-V deploy script creates switches, VMs, config ISOs, and DVD ordering.
+
+Prerequisites:
+- Hyper-V PowerShell module
+- ISO tool: Windows ADK (`oscdimg.exe`) or `mkisofs` / `genisoimage`
+
+Example:
+```
+powershell .\scripts\deploy-hyperv-lab.ps1
+```
+
+Optional overrides:
+```
+powershell .\scripts\deploy-hyperv-lab.ps1 -MemoryStartupBytes 1GB -CpuCount 1 -UseExternalAdapters -AzureExternalAdapterName "<adapter>" -OnPremUnderlayAdapterName "<adapter>"
+```
+
+## Hyper-V cleanup
+Remove the lab VMs and switches:
+```
+powershell .\scripts\remove-hyperv-lab.ps1
+```
+
+## Generate hw-id mappings
+To pin interfaces to MACs on each VM:
+```
+powershell .\scripts\export-vyos-hwids.ps1 -OutputPath .\artifacts\vyos-hwids.txt
+```
+
 ## Automation note
 VyOS config is best treated as **IaC**:
 - Keep the desired-state config in Git
 - Apply via SSH using `load merge` + `commit-confirm` + `save`
 
 See `scripts/apply-config.sh`.
+
+## First-boot config injection (NoCloud seed ISO)
+If you want a router to **self-apply a .vyos config on first boot**, use the helper script.
+It creates a **NoCloud** seed ISO (label `CIDATA`) with `user-data` and `meta-data` files and attaches it to the VM DVD.
+
+Example:
+1) Install VyOS on the VM and shut it down.
+2) Run (PowerShell):
+  `./scripts/bootstrap-vyos.ps1 -ConfigPath configs/azure/grey.vyos -VmName vyos-az-proton-grey`
+   - Optional: add `-DisableDhcpEth0` to generate `network-config` that disables DHCP on `eth0`.
+3) Start the VM; cloud-init applies the config during first boot via NoCloud.
+
+Note: The script requires an ISO tool (`oscdimg.exe`, `mkisofs`, or `genisoimage`) and labels the ISO `CIDATA` per NoCloud requirements.

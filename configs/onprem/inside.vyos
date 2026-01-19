@@ -1,5 +1,5 @@
 configure
-set system host-name 'ONPREM-INSIDE'
+set system host-name 'onp-inside'
 
 set interfaces ethernet eth0 description 'UPLINK-SDPC'
 set interfaces ethernet eth0 address '20.0.0.2/24'

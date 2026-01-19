@@ -1,5 +1,5 @@
 configure
-set system host-name 'ONPREM-SANDBOX'
+set system host-name 'onp-sandbox'
 
 set interfaces ethernet eth0 description 'UPLINK-SDPC'
 set interfaces ethernet eth0 address '20.0.0.4/24'

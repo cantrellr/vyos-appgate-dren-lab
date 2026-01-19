@@ -1,5 +1,5 @@
 configure
-set system host-name 'AZ-PROTON-SANDBOX'
+set system host-name 'az-proton-sandbox'
 
 set interfaces ethernet eth0 description 'UPLINK-SDPC'
 set interfaces ethernet eth0 address '10.0.0.4/24'

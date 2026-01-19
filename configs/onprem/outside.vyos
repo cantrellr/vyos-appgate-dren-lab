@@ -1,5 +1,5 @@
 configure
-set system host-name 'ONPREM-OUT'
+set system host-name 'onp-out'
 
 # UNDERLAY: replace with your real on-prem transport IP that can reach AZ Outside underlay
 set interfaces ethernet eth0 description 'UNDERLAY'
@@ -20,7 +20,7 @@ set protocols static route '0.0.0.0/0' next-hop '255.254.2.1'
 
 # Policy route: DOMAIN pool internet egress via AZ WAN (VTI)
 set policy route AZ-WAN-EGRESS rule 10 description 'DOMAIN pool egress via AZ WAN'
-set policy route AZ-WAN-EGRESS rule 10 source address '20.1.0.20-20.1.0.29'
+set policy route AZ-WAN-EGRESS rule 10 source address '20.1.0.21-20.1.0.29'
 set policy route AZ-WAN-EGRESS rule 10 set table '100'
 set interfaces ethernet eth1 policy route 'AZ-WAN-EGRESS'
 

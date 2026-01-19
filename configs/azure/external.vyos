@@ -1,5 +1,5 @@
 configure
-set system host-name 'AZ-PROTON-EXT'
+set system host-name 'az-proton-ext'
 
 # WAN segment
 set interfaces ethernet eth0 description 'WAN-SEGMENT'

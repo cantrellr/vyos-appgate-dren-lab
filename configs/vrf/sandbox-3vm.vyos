@@ -1,0 +1,74 @@
+configure
+set system host-name 'sandbox-3vm'
+
+set vrf name AZ_SEG table '300'
+set vrf name ONP_SEG table '400'
+
+# AZ sandbox
+set interfaces ethernet eth0 description 'AZ-SDPC-UPLINK'
+set interfaces ethernet eth0 address '10.0.0.4/24'
+set interfaces ethernet eth0 vrf 'AZ_SEG'
+
+set interfaces ethernet eth1 description 'AZ-SEG'
+set interfaces ethernet eth1 address '10.3.0.1/24'
+set interfaces ethernet eth1 vrf 'AZ_SEG'
+
+# ONP sandbox + HWIL
+set interfaces ethernet eth2 description 'ONP-SDPC-UPLINK'
+set interfaces ethernet eth2 address '20.0.0.4/24'
+set interfaces ethernet eth2 vrf 'ONP_SEG'
+
+set interfaces ethernet eth3 description 'ONP-SEG'
+set interfaces ethernet eth3 address '20.3.0.1/24'
+set interfaces ethernet eth3 vrf 'ONP_SEG'
+
+set interfaces ethernet eth4 description 'ONP-HWIL'
+set interfaces ethernet eth4 address '20.3.1.1/24'
+set interfaces ethernet eth4 vrf 'ONP_SEG'
+
+# Routing
+set protocols static route '0.0.0.0/0' next-hop '10.0.0.1' vrf 'AZ_SEG'
+set protocols static route '0.0.0.0/0' next-hop '20.0.0.1' vrf 'ONP_SEG'
+
+# AZ SEG egress hardening (optional)
+set firewall ipv4 name AZ-SEG-IN default-action 'drop'
+set firewall ipv4 name AZ-SEG-IN rule 10 action 'accept'
+set firewall ipv4 name AZ-SEG-IN rule 10 state established 'enable'
+set firewall ipv4 name AZ-SEG-IN rule 10 state related 'enable'
+set firewall ipv4 name AZ-SEG-IN rule 20 action 'accept'
+set firewall ipv4 name AZ-SEG-IN rule 20 state new 'enable'
+set firewall ipv4 name AZ-SEG-IN rule 20 destination address '10.0.0.1'
+set firewall ipv4 name AZ-SEG-IN rule 30 action 'accept'
+set firewall ipv4 name AZ-SEG-IN rule 30 state new 'enable'
+set firewall ipv4 name AZ-SEG-IN rule 30 destination address '10.3.0.1'
+set interfaces ethernet eth1 firewall in name 'AZ-SEG-IN'
+
+# ONP SEG egress hardening (optional)
+set firewall ipv4 name ONP-SEG-IN default-action 'drop'
+set firewall ipv4 name ONP-SEG-IN rule 10 action 'accept'
+set firewall ipv4 name ONP-SEG-IN rule 10 state established 'enable'
+set firewall ipv4 name ONP-SEG-IN rule 10 state related 'enable'
+set firewall ipv4 name ONP-SEG-IN rule 20 action 'accept'
+set firewall ipv4 name ONP-SEG-IN rule 20 state new 'enable'
+set firewall ipv4 name ONP-SEG-IN rule 20 destination address '20.0.0.1'
+set firewall ipv4 name ONP-SEG-IN rule 30 action 'accept'
+set firewall ipv4 name ONP-SEG-IN rule 30 state new 'enable'
+set firewall ipv4 name ONP-SEG-IN rule 30 destination address '20.3.0.1'
+set interfaces ethernet eth3 firewall in name 'ONP-SEG-IN'
+
+# ONP HWIL isolation
+set firewall ipv4 name ONP-HWIL-IN default-action 'drop'
+set firewall ipv4 name ONP-HWIL-IN rule 10 action 'accept'
+set firewall ipv4 name ONP-HWIL-IN rule 10 state established 'enable'
+set firewall ipv4 name ONP-HWIL-IN rule 10 state related 'enable'
+set firewall ipv4 name ONP-HWIL-IN rule 20 action 'accept'
+set firewall ipv4 name ONP-HWIL-IN rule 20 state new 'enable'
+set firewall ipv4 name ONP-HWIL-IN rule 20 destination address '20.3.0.0/24'
+set firewall ipv4 name ONP-HWIL-IN rule 30 action 'accept'
+set firewall ipv4 name ONP-HWIL-IN rule 30 state new 'enable'
+set firewall ipv4 name ONP-HWIL-IN rule 30 destination address '20.3.1.1'
+set interfaces ethernet eth4 firewall in name 'ONP-HWIL-IN'
+
+commit
+save
+exit

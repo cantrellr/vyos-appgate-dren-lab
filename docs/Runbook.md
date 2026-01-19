@@ -5,6 +5,26 @@
 - Confirm which IPs will be used as the **IPsec underlay** between Outside routers.
 - Decide whether On-Prem External/WAN exists (optional).
 
+## 1.1) One-command Hyper-V build
+Prerequisites:
+- Hyper-V PowerShell module
+- ISO tool: Windows ADK (`oscdimg.exe`) or `mkisofs` / `genisoimage`
+
+Command:
+```powershell
+powershell .\scripts\deploy-hyperv-lab.ps1
+```
+
+Optional overrides:
+```powershell
+powershell .\scripts\deploy-hyperv-lab.ps1 -MemoryStartupBytes 1GB -CpuCount 1 -RebuildConfigIsos -ReattachDvds
+```
+
+## 1.2) Generate `hw-id` snippets
+```powershell
+powershell .\scripts\export-vyos-hwids.ps1 -OutputPath .\artifacts\vyos-hwids.txt
+```
+
 ## 2) Apply order (recommended)
 Azure:
 1. External
@@ -63,4 +83,10 @@ Negative tests:
 - Asymmetric routing: ensure both sides have routes for remote prefixes and that Grey points to Outside via DREN.
 - NAT leaking into tunnel: ensure NAT exemptions exist (Azure Outside if you do WAN NAT).
 - MTU/MSS: if you see intermittent TLS issues, clamp MSS on VTI.
+
+## 6) Cleanup
+Remove lab VMs and switches:
+```powershell
+powershell .\scripts\remove-hyperv-lab.ps1
+```
 

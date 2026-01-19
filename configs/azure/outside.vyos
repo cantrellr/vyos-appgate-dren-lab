@@ -1,5 +1,5 @@
 configure
-set system host-name 'AZ-PROTON-OUT'
+set system host-name 'az-proton-out'
 
 # To External (WAN segment)
 set interfaces ethernet eth0 description 'WAN-SEGMENT'
@@ -24,7 +24,7 @@ set protocols static route '20.0.0.0/8' interface 'vti0'
 # Remote peer underlay IP must be reachable from this router.
 
 set interfaces vti vti0 address '172.31.255.1/30'
-set interfaces vti vti0 description 'DREN-to-ONPREM-VTI'
+set interfaces vti vti0 description 'DREN-to-ONP-VTI'
 
 set vpn ipsec ike-group DREN-IKE key-exchange 'ikev2'
 set vpn ipsec ike-group DREN-IKE proposal 1 dh-group '14'
@@ -45,7 +45,7 @@ set vpn ipsec site-to-site peer '255.254.2.2' local-address '255.254.1.2'
 set vpn ipsec site-to-site peer '255.254.2.2' vti bind 'vti0'
 
 # NAT for Azure internal to External (do not NAT to tunnel)
-set nat source rule 5 description 'NO-NAT-TO-ONPREM'
+set nat source rule 5 description 'NO-NAT-TO-ONP'
 set nat source rule 5 outbound-interface name 'eth0'
 set nat source rule 5 source address '10.0.0.0/8'
 set nat source rule 5 destination address '20.0.0.0/8'
@@ -56,9 +56,9 @@ set nat source rule 10 outbound-interface name 'eth0'
 set nat source rule 10 source address '10.0.0.0/8'
 set nat source rule 10 translation address masquerade
 
-set nat source rule 15 description 'NAT-ONPREM-DOMAIN-POOL-TO-WAN'
+set nat source rule 15 description 'NAT-ONP-DOMAIN-POOL-TO-WAN'
 set nat source rule 15 outbound-interface name 'eth0'
-set nat source rule 15 source address '20.1.0.20-20.1.0.29'
+set nat source rule 15 source address '20.1.0.21-20.1.0.29'
 set nat source rule 15 translation address masquerade
 
 commit

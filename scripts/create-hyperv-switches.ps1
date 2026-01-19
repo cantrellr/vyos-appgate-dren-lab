@@ -7,33 +7,51 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $internalSwitches = @(
-    'AZ-DREN',
-    'AZ-SDPC',
-    'AZ-SDPG',
-    'AZ-SDPT',
-    'AZ-AVD',
-    'AZ-DOMAIN',
-    'AZ-DOMSVC',
-    'AZ-DEV',
-    'AZ-DEVSVC',
-    'AZ-SEG',
-    'ONP-DREN',
-    'ONP-SDPC',
-    'ONP-SDPG',
-    'ONP-SDPT',
-    'ONP-AVD',
-    'ONP-DOMAIN',
-    'ONP-DOMSVC',
-    'ONP-DEV',
-    'ONP-DEVSVC',
-    'ONP-SEG',
-    'ONP-HWIL'
+    'az-dren',
+    'az-sdpc',
+    'az-sdpg',
+    'az-sdpt',
+    'az-avd',
+    'az-domain',
+    'az-domsvc',
+    'az-dev',
+    'az-devsvc',
+    'az-seg',
+    'onp-dren',
+    'onp-sdpc',
+    'onp-sdpg',
+    'onp-sdpt',
+    'onp-avd',
+    'onp-domain',
+    'onp-domsvc',
+    'onp-dev',
+    'onp-devsvc',
+    'onp-seg',
+    'onp-hwil'
 )
 
 $externalSwitches = @(
-    @{ Name = 'AZ-WAN'; Adapter = $AzureExternalAdapterName },
-    @{ Name = 'ONP-UNDERLAY'; Adapter = $OnPremUnderlayAdapterName }
+    @{ Name = 'az-wan'; Adapter = $AzureExternalAdapterName },
+    @{ Name = 'onp-underlay'; Adapter = $OnPremUnderlayAdapterName }
 )
+
+function Get-AdapterNames {
+    Get-NetAdapter | Select-Object -ExpandProperty Name
+}
+
+function Assert-AdapterExists {
+    param([string]$AdapterName, [string]$SwitchName)
+
+    if ([string]::IsNullOrWhiteSpace($AdapterName)) {
+        throw "Adapter name required for external switch '$SwitchName'."
+    }
+
+    $adapter = Get-NetAdapter -Name $AdapterName -ErrorAction SilentlyContinue
+    if ($null -eq $adapter) {
+        $available = (Get-AdapterNames) -join ', '
+        throw "Adapter '$AdapterName' not found for switch '$SwitchName'. Available adapters: $available"
+    }
+}
 
 function Ensure-SwitchInternal {
     param([string]$Name)
@@ -55,9 +73,7 @@ function Ensure-SwitchExternal {
         return
     }
 
-    if ([string]::IsNullOrWhiteSpace($AdapterName)) {
-        throw "Adapter name required for external switch '$Name'."
-    }
+    Assert-AdapterExists -AdapterName $AdapterName -SwitchName $Name
 
     New-VMSwitch -Name $Name -NetAdapterName $AdapterName -AllowManagementOS $true | Out-Null
     Write-Host "[NEW] External switch created: $Name (Adapter: $AdapterName)"
