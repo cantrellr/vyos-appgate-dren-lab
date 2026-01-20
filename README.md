@@ -68,15 +68,19 @@ VyOS config is best treated as **IaC**:
 
 See `scripts/apply-config.sh`.
 
-## First-boot config injection (NoCloud seed ISO)
-If you want a router to **self-apply a .vyos config on first boot**, use the helper script.
-It creates a **NoCloud** seed ISO (label `CIDATA`) with `user-data` and `meta-data` files and attaches it to the VM DVD.
+## Config ISO (manual apply) and NoCloud (optional)
+By default, the helper script now builds a **config-only ISO** (label `VYOSCFG`) that contains `config.vyos`.
+This is intended for **manual apply** after running `install image`.
 
-Example:
+Example (manual apply):
 1) Install VyOS on the VM and shut it down.
 2) Run (PowerShell):
   `./scripts/bootstrap-vyos.ps1 -ConfigPath configs/azure/grey.vyos -VmName vyos-az-proton-grey`
-   - Optional: add `-DisableDhcpEth0` to generate `network-config` that disables DHCP on `eth0`.
-3) Start the VM; cloud-init applies the config during first boot via NoCloud.
+3) Start the VM and mount the second DVD.
+4) Apply manually from the VyOS console:
+   - `load /media/cdrom/config.vyos`
+   - `commit`
+   - `save`
 
-Note: The script requires an ISO tool (`oscdimg.exe`, `mkisofs`, or `genisoimage`) and labels the ISO `CIDATA` per NoCloud requirements.
+If you still want **NoCloud auto-apply**, pass `-IsoMode NoCloud`.
+Note: The script requires an ISO tool (`oscdimg.exe`, `mkisofs`, or `genisoimage`).

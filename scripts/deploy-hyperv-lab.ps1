@@ -2,7 +2,7 @@ param(
     [string]$RepoRoot,
     [string]$InstallIsoPath = 'C:\Users\adminlocal\Downloads\vyos-2025.11-generic-amd64.iso',
     [string]$IsoWorkingRoot,
-    [UInt64]$MemoryStartupBytes = 4GB,
+    [UInt64]$MemoryStartupBytes = 1GB,
     [int]$CpuCount = 1,
     [bool]$DynamicMemoryEnabled = $false,
     [bool]$AutomaticCheckpointsEnabled = $false,
@@ -18,7 +18,9 @@ param(
     [switch]$RebuildConfigIsos,
     [switch]$ReattachDvds,
     [switch]$SkipPreflight,
-    [switch]$DisableDhcpEth0
+    [switch]$DisableDhcpEth0,
+    [ValidateSet('ConfigOnly','NoCloud')]
+    [string]$ConfigIsoMode = 'ConfigOnly'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -186,7 +188,8 @@ if ($CreateSwitches) {
 foreach ($vm in $vmDefinitions) {
     $vmName = $vm.Name
     $configPath = Join-Path $RepoRoot $vm.Config
-    $configIsoPath = Join-Path $IsoWorkingRoot ("$vmName.config.iso")
+    $isoSuffix = if ($ConfigIsoMode -eq 'NoCloud') { 'seed' } else { 'configonly' }
+    $configIsoPath = Join-Path $IsoWorkingRoot ("$vmName.$isoSuffix.iso")
 
     if (-not (Test-Path $configPath)) {
         throw "Config file not found for ${vmName}: $configPath"
@@ -200,7 +203,7 @@ foreach ($vm in $vmDefinitions) {
         if ((-not $RebuildConfigIsos) -and (Test-Path $configIsoPath)) {
             Write-Host "[OK] Config ISO exists: $configIsoPath"
         } else {
-            & $bootstrapScript -ConfigPath $configPath -VmName $vmName -IsoOutputPath $configIsoPath -IsoWorkingRoot $IsoWorkingRoot -SkipAttach -DisableDhcpEth0:$DisableDhcpEth0 | Out-Host
+            & $bootstrapScript -ConfigPath $configPath -VmName $vmName -IsoOutputPath $configIsoPath -IsoWorkingRoot $IsoWorkingRoot -SkipAttach -DisableDhcpEth0:$DisableDhcpEth0 -IsoMode $ConfigIsoMode | Out-Host
         }
     }
 

@@ -6,6 +6,8 @@ param(
     [string]$IsoOutputPath,
     [string]$IsoWorkingRoot,
     [string]$InstanceId,
+    [ValidateSet('ConfigOnly','NoCloud')]
+    [string]$IsoMode = 'ConfigOnly',
     [switch]$SkipAttach,
     [switch]$DisableDhcpEth0
 )
@@ -23,7 +25,8 @@ if ([string]::IsNullOrWhiteSpace($IsoWorkingRoot)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($IsoOutputPath)) {
-    $IsoOutputPath = Join-Path $IsoWorkingRoot ("$VmName.config.iso")
+    $isoSuffix = if ($IsoMode -eq 'NoCloud') { 'seed' } else { 'configonly' }
+    $IsoOutputPath = Join-Path $IsoWorkingRoot ("$VmName.$isoSuffix.iso")
 }
 
 if ([string]::IsNullOrWhiteSpace($InstanceId)) {
@@ -54,59 +57,72 @@ function Get-VyosHostNameFromConfig {
     return $null
 }
 
-$hostname = Get-VyosHostNameFromConfig -Path $ConfigPath
-
-$vyosConfigLines = Get-Content -Path $ConfigPath | ForEach-Object { $_.Trim() } | Where-Object {
-    $_ -and
-    (-not $_.StartsWith('#')) -and
-    ($_ -notin @('configure','commit','save','exit'))
-}
-
-$userDataLines = @(
-    "#cloud-config",
-    "datasource_list: [ NoCloud, None ]",
-    "vyos_config_commands:"
-) + ($vyosConfigLines | ForEach-Object { "  - $_" })
-
-$metaDataLines = @(
-    "instance-id: $InstanceId"
-)
-
-if (-not [string]::IsNullOrWhiteSpace($hostname)) {
-    $metaDataLines += "local-hostname: $hostname"
-}
-
+$hostname = $null
+$vyosConfigLines = $null
+$userDataLines = $null
+$metaDataLines = $null
 $networkConfigLines = $null
-if ($DisableDhcpEth0) {
-    $networkConfigLines = @(
-        "version: 2",
-        "ethernets:",
-        "  eth0:",
-        "    dhcp4: false",
-        "    dhcp6: false"
+
+if ($IsoMode -eq 'NoCloud') {
+    $hostname = Get-VyosHostNameFromConfig -Path $ConfigPath
+
+    $vyosConfigLines = Get-Content -Path $ConfigPath | ForEach-Object { $_.Trim() } | Where-Object {
+        $_ -and
+        (-not $_.StartsWith('#')) -and
+        ($_ -notin @('configure','commit','save','exit'))
+    }
+
+    $userDataLines = @(
+        "#cloud-config",
+        "datasource_list: [ NoCloud, None ]",
+        "vyos_config_commands:"
+    ) + ($vyosConfigLines | ForEach-Object { "  - $_" })
+
+    $metaDataLines = @(
+        "instance-id: $InstanceId"
     )
+
+    if (-not [string]::IsNullOrWhiteSpace($hostname)) {
+        $metaDataLines += "local-hostname: $hostname"
+    }
+
+    if ($DisableDhcpEth0) {
+        $networkConfigLines = @(
+            "version: 2",
+            "ethernets:",
+            "  eth0:",
+            "    dhcp4: false",
+            "    dhcp6: false"
+        )
+    }
 }
 
 $tempRoot = Join-Path $IsoWorkingRoot ([System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetRandomFileName()))
 New-Item -ItemType Directory -Path $tempRoot | Out-Null
 
 try {
-    Set-Content -Path (Join-Path $tempRoot 'user-data') -Value $userDataLines -Encoding UTF8
-    Set-Content -Path (Join-Path $tempRoot 'meta-data') -Value $metaDataLines -Encoding UTF8
-    if ($null -ne $networkConfigLines) {
-        Set-Content -Path (Join-Path $tempRoot 'network-config') -Value $networkConfigLines -Encoding UTF8
+    if ($IsoMode -eq 'NoCloud') {
+        Set-Content -Path (Join-Path $tempRoot 'user-data') -Value $userDataLines -Encoding UTF8
+        Set-Content -Path (Join-Path $tempRoot 'meta-data') -Value $metaDataLines -Encoding UTF8
+        if ($null -ne $networkConfigLines) {
+            Set-Content -Path (Join-Path $tempRoot 'network-config') -Value $networkConfigLines -Encoding UTF8
+        }
+    } else {
+        Copy-Item -Path $ConfigPath -Destination (Join-Path $tempRoot 'config.vyos')
     }
 
     $oscdimg = Get-Command -Name oscdimg.exe -ErrorAction SilentlyContinue
     $mkisofs = Get-Command -Name mkisofs -ErrorAction SilentlyContinue
     $geniso = Get-Command -Name genisoimage -ErrorAction SilentlyContinue
 
+    $isoLabel = if ($IsoMode -eq 'NoCloud') { 'CIDATA' } else { 'VYOSCFG' }
+
     if ($oscdimg) {
-        & $oscdimg.Source -o -u2 -udfver102 -lCIDATA $tempRoot $IsoOutputPath | Out-Null
+        & $oscdimg.Source -o -u2 -udfver102 -l$isoLabel $tempRoot $IsoOutputPath | Out-Null
     } elseif ($mkisofs) {
-        & $mkisofs.Source -o $IsoOutputPath -V CIDATA -J -r $tempRoot | Out-Null
+        & $mkisofs.Source -o $IsoOutputPath -V $isoLabel -J -r $tempRoot | Out-Null
     } elseif ($geniso) {
-        & $geniso.Source -o $IsoOutputPath -V CIDATA -J -r $tempRoot | Out-Null
+        & $geniso.Source -o $IsoOutputPath -V $isoLabel -J -r $tempRoot | Out-Null
     } else {
         throw "ISO tool not found. Install Windows ADK (oscdimg) or mkisofs/genisoimage, then retry."
     }
