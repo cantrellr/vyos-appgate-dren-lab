@@ -75,7 +75,7 @@ This is intended for **manual apply** after running `install image`.
 Example (manual apply):
 1) Install VyOS on the VM and shut it down.
 2) Run (PowerShell):
-  `./scripts/bootstrap-vyos.ps1 -ConfigPath configs/azure/grey.vyos -VmName vyos-az-proton-grey`
+  `./scripts/bootstrap-vyos.ps1 -ConfigPath configs/azure/grey.vyos -VmName vyos-az-grey`
 3) Start the VM and mount the second DVD.
 4) Apply manually from the VyOS console:
    - `load /media/cdrom/config.vyos`

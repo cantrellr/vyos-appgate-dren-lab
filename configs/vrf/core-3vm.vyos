@@ -123,214 +123,227 @@ set firewall group network-group ONP_REMOTE_DOWNSTREAM network '10.2.0.0/24'
 set firewall group network-group ONP_REMOTE_DOWNSTREAM network '10.2.1.0/24'
 set firewall group network-group ONP_REMOTE_DOWNSTREAM network '10.3.0.0/24'
 
+# Port groups (protected resources)
+set firewall group port-group PROTECTED_TCP port '22'
+set firewall group port-group PROTECTED_TCP port '80'
+set firewall group port-group PROTECTED_TCP port '443'
+set firewall group port-group PROTECTED_TCP port '445'
+set firewall group port-group PROTECTED_TCP port '3389'
+set firewall group port-group PROTECTED_TCP port '1433'
+set firewall group port-group PROTECTED_TCP port '1521'
+set firewall group port-group PROTECTED_TCP port '3306'
+set firewall group port-group PROTECTED_TCP port '5432'
+set firewall group port-group PROTECTED_TCP port '27017'
+set firewall group port-group PROTECTED_UDP port '3389'
+
 # AZ rulesets
 set firewall ipv4 name AZ-SDPC-TO-GW default-action 'drop'
 set firewall ipv4 name AZ-SDPC-TO-GW rule 10 action 'accept'
-set firewall ipv4 name AZ-SDPC-TO-GW rule 10 state established 'enable'
-set firewall ipv4 name AZ-SDPC-TO-GW rule 10 state related 'enable'
+set firewall ipv4 name AZ-SDPC-TO-GW rule 10 state established
+set firewall ipv4 name AZ-SDPC-TO-GW rule 10 state related
 set firewall ipv4 name AZ-SDPC-TO-GW rule 20 action 'accept'
-set firewall ipv4 name AZ-SDPC-TO-GW rule 20 state new 'enable'
+set firewall ipv4 name AZ-SDPC-TO-GW rule 20 state new
 set firewall ipv4 name AZ-SDPC-TO-GW rule 20 protocol 'tcp'
 set firewall ipv4 name AZ-SDPC-TO-GW rule 20 destination group network-group 'AZ_LOCAL_GW'
 set firewall ipv4 name AZ-SDPC-TO-GW rule 20 destination port '443'
 set firewall ipv4 name AZ-SDPC-TO-GW rule 30 action 'accept'
-set firewall ipv4 name AZ-SDPC-TO-GW rule 30 state new 'enable'
+set firewall ipv4 name AZ-SDPC-TO-GW rule 30 state new
 set firewall ipv4 name AZ-SDPC-TO-GW rule 30 protocol 'tcp'
 set firewall ipv4 name AZ-SDPC-TO-GW rule 30 destination group network-group 'AZ_LOCAL_GW'
 set firewall ipv4 name AZ-SDPC-TO-GW rule 30 destination port '444'
 
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW default-action 'drop'
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 10 action 'accept'
-set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 10 state established 'enable'
-set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 10 state related 'enable'
+set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 10 state established
+set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 10 state related
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 20 action 'accept'
-set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 20 state new 'enable'
+set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 20 state new
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 20 protocol 'tcp'
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 20 destination group network-group 'AZ_REMOTE_GW'
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 20 destination port '443'
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 30 action 'accept'
-set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 30 state new 'enable'
+set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 30 state new
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 30 protocol 'tcp'
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 30 destination group network-group 'AZ_REMOTE_GW'
 set firewall ipv4 name AZ-SDPC-TO-REMOTE-GW rule 30 destination port '444'
 
 set firewall ipv4 name AZ-AVD-TO-GW default-action 'drop'
 set firewall ipv4 name AZ-AVD-TO-GW rule 10 action 'accept'
-set firewall ipv4 name AZ-AVD-TO-GW rule 10 state established 'enable'
-set firewall ipv4 name AZ-AVD-TO-GW rule 10 state related 'enable'
+set firewall ipv4 name AZ-AVD-TO-GW rule 10 state established
+set firewall ipv4 name AZ-AVD-TO-GW rule 10 state related
 set firewall ipv4 name AZ-AVD-TO-GW rule 20 action 'accept'
-set firewall ipv4 name AZ-AVD-TO-GW rule 20 state new 'enable'
+set firewall ipv4 name AZ-AVD-TO-GW rule 20 state new
 set firewall ipv4 name AZ-AVD-TO-GW rule 20 protocol 'tcp'
 set firewall ipv4 name AZ-AVD-TO-GW rule 20 destination group network-group 'AZ_LOCAL_GW'
 set firewall ipv4 name AZ-AVD-TO-GW rule 20 destination port '443'
 set firewall ipv4 name AZ-AVD-TO-GW rule 30 action 'accept'
-set firewall ipv4 name AZ-AVD-TO-GW rule 30 state new 'enable'
+set firewall ipv4 name AZ-AVD-TO-GW rule 30 state new
 set firewall ipv4 name AZ-AVD-TO-GW rule 30 protocol 'udp'
 set firewall ipv4 name AZ-AVD-TO-GW rule 30 destination group network-group 'AZ_LOCAL_GW'
 set firewall ipv4 name AZ-AVD-TO-GW rule 30 destination port '443'
 set firewall ipv4 name AZ-AVD-TO-GW rule 40 action 'accept'
-set firewall ipv4 name AZ-AVD-TO-GW rule 40 state new 'enable'
+set firewall ipv4 name AZ-AVD-TO-GW rule 40 state new
 set firewall ipv4 name AZ-AVD-TO-GW rule 40 protocol 'udp'
 set firewall ipv4 name AZ-AVD-TO-GW rule 40 destination group network-group 'AZ_LOCAL_GW'
 set firewall ipv4 name AZ-AVD-TO-GW rule 40 destination port '53'
 
 set firewall ipv4 name AZ-AVD-TO-SDPC default-action 'drop'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 10 action 'accept'
-set firewall ipv4 name AZ-AVD-TO-SDPC rule 10 state established 'enable'
-set firewall ipv4 name AZ-AVD-TO-SDPC rule 10 state related 'enable'
+set firewall ipv4 name AZ-AVD-TO-SDPC rule 10 state established
+set firewall ipv4 name AZ-AVD-TO-SDPC rule 10 state related
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 20 action 'accept'
-set firewall ipv4 name AZ-AVD-TO-SDPC rule 20 state new 'enable'
+set firewall ipv4 name AZ-AVD-TO-SDPC rule 20 state new
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 20 protocol 'tcp'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 20 destination group network-group 'AZ_LOCAL_SDPC'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 20 destination port '443'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 30 action 'accept'
-set firewall ipv4 name AZ-AVD-TO-SDPC rule 30 state new 'enable'
+set firewall ipv4 name AZ-AVD-TO-SDPC rule 30 state new
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 30 protocol 'udp'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 30 destination group network-group 'AZ_LOCAL_SDPC'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 30 destination port '443'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 40 action 'accept'
-set firewall ipv4 name AZ-AVD-TO-SDPC rule 40 state new 'enable'
+set firewall ipv4 name AZ-AVD-TO-SDPC rule 40 state new
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 40 protocol 'udp'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 40 destination group network-group 'AZ_LOCAL_SDPC'
 set firewall ipv4 name AZ-AVD-TO-SDPC rule 40 destination port '53'
 
 set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN default-action 'drop'
 set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 10 action 'accept'
-set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 10 state established 'enable'
-set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 10 state related 'enable'
+set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 10 state established
+set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 10 state related
 set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 20 action 'accept'
-set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 20 state new 'enable'
+set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 20 state new
 set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 20 protocol 'tcp'
 set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 20 destination group network-group 'AZ_LOCAL_DOWNSTREAM'
-set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 20 destination port group 'PROTECTED_TCP'
+set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 20 destination group port-group 'PROTECTED_TCP'
 set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 30 action 'accept'
-set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 30 state new 'enable'
+set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 30 state new
 set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 30 protocol 'udp'
 set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 30 destination group network-group 'AZ_LOCAL_DOWNSTREAM'
-set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 30 destination port group 'PROTECTED_UDP'
+set firewall ipv4 name AZ-GW-TO-LOCAL-DOWN rule 30 destination group port-group 'PROTECTED_UDP'
 
 set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN default-action 'drop'
 set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 10 action 'accept'
-set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 10 state established 'enable'
-set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 10 state related 'enable'
+set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 10 state established
+set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 10 state related
 set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 20 action 'accept'
-set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 20 state new 'enable'
+set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 20 state new
 set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 20 protocol 'tcp'
 set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 20 destination group network-group 'AZ_REMOTE_DOWNSTREAM'
-set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 20 destination port group 'PROTECTED_TCP'
+set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 20 destination group port-group 'PROTECTED_TCP'
 set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 30 action 'accept'
-set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 30 state new 'enable'
+set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 30 state new
 set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 30 protocol 'udp'
 set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 30 destination group network-group 'AZ_REMOTE_DOWNSTREAM'
-set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 30 destination port group 'PROTECTED_UDP'
+set firewall ipv4 name AZ-GW-TO-REMOTE-DOWN rule 30 destination group port-group 'PROTECTED_UDP'
 
 # ONP rulesets (mirror)
 set firewall ipv4 name ONP-SDPC-TO-GW default-action 'drop'
 set firewall ipv4 name ONP-SDPC-TO-GW rule 10 action 'accept'
-set firewall ipv4 name ONP-SDPC-TO-GW rule 10 state established 'enable'
-set firewall ipv4 name ONP-SDPC-TO-GW rule 10 state related 'enable'
+set firewall ipv4 name ONP-SDPC-TO-GW rule 10 state established
+set firewall ipv4 name ONP-SDPC-TO-GW rule 10 state related
 set firewall ipv4 name ONP-SDPC-TO-GW rule 20 action 'accept'
-set firewall ipv4 name ONP-SDPC-TO-GW rule 20 state new 'enable'
+set firewall ipv4 name ONP-SDPC-TO-GW rule 20 state new
 set firewall ipv4 name ONP-SDPC-TO-GW rule 20 protocol 'tcp'
 set firewall ipv4 name ONP-SDPC-TO-GW rule 20 destination group network-group 'ONP_LOCAL_GW'
 set firewall ipv4 name ONP-SDPC-TO-GW rule 20 destination port '443'
 set firewall ipv4 name ONP-SDPC-TO-GW rule 30 action 'accept'
-set firewall ipv4 name ONP-SDPC-TO-GW rule 30 state new 'enable'
+set firewall ipv4 name ONP-SDPC-TO-GW rule 30 state new
 set firewall ipv4 name ONP-SDPC-TO-GW rule 30 protocol 'tcp'
 set firewall ipv4 name ONP-SDPC-TO-GW rule 30 destination group network-group 'ONP_LOCAL_GW'
 set firewall ipv4 name ONP-SDPC-TO-GW rule 30 destination port '444'
 
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW default-action 'drop'
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 10 action 'accept'
-set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 10 state established 'enable'
-set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 10 state related 'enable'
+set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 10 state established
+set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 10 state related
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 20 action 'accept'
-set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 20 state new 'enable'
+set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 20 state new
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 20 protocol 'tcp'
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 20 destination group network-group 'ONP_REMOTE_GW'
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 20 destination port '443'
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 30 action 'accept'
-set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 30 state new 'enable'
+set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 30 state new
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 30 protocol 'tcp'
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 30 destination group network-group 'ONP_REMOTE_GW'
 set firewall ipv4 name ONP-SDPC-TO-REMOTE-GW rule 30 destination port '444'
 
 set firewall ipv4 name ONP-AVD-TO-GW default-action 'drop'
 set firewall ipv4 name ONP-AVD-TO-GW rule 10 action 'accept'
-set firewall ipv4 name ONP-AVD-TO-GW rule 10 state established 'enable'
-set firewall ipv4 name ONP-AVD-TO-GW rule 10 state related 'enable'
+set firewall ipv4 name ONP-AVD-TO-GW rule 10 state established
+set firewall ipv4 name ONP-AVD-TO-GW rule 10 state related
 set firewall ipv4 name ONP-AVD-TO-GW rule 20 action 'accept'
-set firewall ipv4 name ONP-AVD-TO-GW rule 20 state new 'enable'
+set firewall ipv4 name ONP-AVD-TO-GW rule 20 state new
 set firewall ipv4 name ONP-AVD-TO-GW rule 20 protocol 'tcp'
 set firewall ipv4 name ONP-AVD-TO-GW rule 20 destination group network-group 'ONP_LOCAL_GW'
 set firewall ipv4 name ONP-AVD-TO-GW rule 20 destination port '443'
 set firewall ipv4 name ONP-AVD-TO-GW rule 30 action 'accept'
-set firewall ipv4 name ONP-AVD-TO-GW rule 30 state new 'enable'
+set firewall ipv4 name ONP-AVD-TO-GW rule 30 state new
 set firewall ipv4 name ONP-AVD-TO-GW rule 30 protocol 'udp'
 set firewall ipv4 name ONP-AVD-TO-GW rule 30 destination group network-group 'ONP_LOCAL_GW'
 set firewall ipv4 name ONP-AVD-TO-GW rule 30 destination port '443'
 set firewall ipv4 name ONP-AVD-TO-GW rule 40 action 'accept'
-set firewall ipv4 name ONP-AVD-TO-GW rule 40 state new 'enable'
+set firewall ipv4 name ONP-AVD-TO-GW rule 40 state new
 set firewall ipv4 name ONP-AVD-TO-GW rule 40 protocol 'udp'
 set firewall ipv4 name ONP-AVD-TO-GW rule 40 destination group network-group 'ONP_LOCAL_GW'
 set firewall ipv4 name ONP-AVD-TO-GW rule 40 destination port '53'
 
 set firewall ipv4 name ONP-AVD-TO-SDPC default-action 'drop'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 10 action 'accept'
-set firewall ipv4 name ONP-AVD-TO-SDPC rule 10 state established 'enable'
-set firewall ipv4 name ONP-AVD-TO-SDPC rule 10 state related 'enable'
+set firewall ipv4 name ONP-AVD-TO-SDPC rule 10 state established
+set firewall ipv4 name ONP-AVD-TO-SDPC rule 10 state related
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 20 action 'accept'
-set firewall ipv4 name ONP-AVD-TO-SDPC rule 20 state new 'enable'
+set firewall ipv4 name ONP-AVD-TO-SDPC rule 20 state new
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 20 protocol 'tcp'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 20 destination group network-group 'ONP_LOCAL_SDPC'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 20 destination port '443'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 30 action 'accept'
-set firewall ipv4 name ONP-AVD-TO-SDPC rule 30 state new 'enable'
+set firewall ipv4 name ONP-AVD-TO-SDPC rule 30 state new
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 30 protocol 'udp'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 30 destination group network-group 'ONP_LOCAL_SDPC'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 30 destination port '443'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 40 action 'accept'
-set firewall ipv4 name ONP-AVD-TO-SDPC rule 40 state new 'enable'
+set firewall ipv4 name ONP-AVD-TO-SDPC rule 40 state new
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 40 protocol 'udp'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 40 destination group network-group 'ONP_LOCAL_SDPC'
 set firewall ipv4 name ONP-AVD-TO-SDPC rule 40 destination port '53'
 
 set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN default-action 'drop'
 set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 10 action 'accept'
-set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 10 state established 'enable'
-set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 10 state related 'enable'
+set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 10 state established
+set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 10 state related
 set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 20 action 'accept'
-set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 20 state new 'enable'
+set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 20 state new
 set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 20 protocol 'tcp'
 set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 20 destination group network-group 'ONP_LOCAL_DOWNSTREAM'
-set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 20 destination port group 'PROTECTED_TCP'
+set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 20 destination group port-group 'PROTECTED_TCP'
 set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 30 action 'accept'
-set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 30 state new 'enable'
+set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 30 state new
 set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 30 protocol 'udp'
 set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 30 destination group network-group 'ONP_LOCAL_DOWNSTREAM'
-set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 30 destination port group 'PROTECTED_UDP'
+set firewall ipv4 name ONP-GW-TO-LOCAL-DOWN rule 30 destination group port-group 'PROTECTED_UDP'
 
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN default-action 'drop'
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 10 action 'accept'
-set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 10 state established 'enable'
-set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 10 state related 'enable'
+set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 10 state established
+set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 10 state related
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 20 action 'accept'
-set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 20 state new 'enable'
+set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 20 state new
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 20 protocol 'tcp'
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 20 destination group network-group 'ONP_REMOTE_DOWNSTREAM'
-set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 20 destination port group 'PROTECTED_TCP'
+set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 20 destination group port-group 'PROTECTED_TCP'
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 action 'accept'
-set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 state new 'enable'
+set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 state new
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 protocol 'udp'
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 destination group network-group 'ONP_REMOTE_DOWNSTREAM'
-set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 destination port group 'PROTECTED_UDP'
+set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 destination group port-group 'PROTECTED_UDP'
 
 # Bind AZ zones
-set firewall zone AZ_SDPC interface 'eth1'
-set firewall zone AZ_SDPG interface 'eth2'
-set firewall zone AZ_SDPT interface 'eth3'
-set firewall zone AZ_AVD  interface 'eth4'
-set firewall zone AZ_DREN interface 'eth0'
+set firewall zone AZ_SDPC member interface 'eth1'
+set firewall zone AZ_SDPG member interface 'eth2'
+set firewall zone AZ_SDPT member interface 'eth3'
+set firewall zone AZ_AVD member interface 'eth4'
+set firewall zone AZ_DREN member interface 'eth0'
 
 set firewall zone AZ_SDPG from AZ_SDPC firewall name 'AZ-SDPC-TO-GW'
 set firewall zone AZ_SDPT from AZ_SDPC firewall name 'AZ-SDPC-TO-GW'
@@ -346,11 +359,11 @@ set firewall zone AZ_DREN from AZ_SDPG firewall name 'AZ-GW-TO-REMOTE-DOWN'
 set firewall zone AZ_DREN from AZ_SDPT firewall name 'AZ-GW-TO-REMOTE-DOWN'
 
 # Bind ONP zones
-set firewall zone ONP_SDPC interface 'eth10'
-set firewall zone ONP_SDPG interface 'eth11'
-set firewall zone ONP_SDPT interface 'eth12'
-set firewall zone ONP_AVD  interface 'eth13'
-set firewall zone ONP_DREN interface 'eth9'
+set firewall zone ONP_SDPC member interface 'eth10'
+set firewall zone ONP_SDPG member interface 'eth11'
+set firewall zone ONP_SDPT member interface 'eth12'
+set firewall zone ONP_AVD member interface 'eth13'
+set firewall zone ONP_DREN member interface 'eth9'
 
 set firewall zone ONP_SDPG from ONP_SDPC firewall name 'ONP-SDPC-TO-GW'
 set firewall zone ONP_SDPT from ONP_SDPC firewall name 'ONP-SDPC-TO-GW'

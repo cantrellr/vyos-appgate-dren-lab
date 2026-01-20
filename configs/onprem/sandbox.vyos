@@ -15,26 +15,26 @@ set protocols static route '0.0.0.0/0' next-hop '20.0.0.1'
 # SEG egress hardening (optional): allow SEG -> Grey only
 set firewall ipv4 name SEG-IN default-action 'drop'
 set firewall ipv4 name SEG-IN rule 10 action 'accept'
-set firewall ipv4 name SEG-IN rule 10 state established 'enable'
-set firewall ipv4 name SEG-IN rule 10 state related 'enable'
+set firewall ipv4 name SEG-IN rule 10 state established
+set firewall ipv4 name SEG-IN rule 10 state related
 set firewall ipv4 name SEG-IN rule 20 action 'accept'
-set firewall ipv4 name SEG-IN rule 20 state new 'enable'
+set firewall ipv4 name SEG-IN rule 20 state new
 set firewall ipv4 name SEG-IN rule 20 destination address '20.0.0.1'
 set firewall ipv4 name SEG-IN rule 30 action 'accept'
-set firewall ipv4 name SEG-IN rule 30 state new 'enable'
+set firewall ipv4 name SEG-IN rule 30 state new
 set firewall ipv4 name SEG-IN rule 30 destination address '20.3.0.1'
 set interfaces ethernet eth1 firewall in name 'SEG-IN'
 
 # HWIL can ONLY reach SEG subnet + its gateway
 set firewall ipv4 name HWIL-IN default-action 'drop'
 set firewall ipv4 name HWIL-IN rule 10 action 'accept'
-set firewall ipv4 name HWIL-IN rule 10 state established 'enable'
-set firewall ipv4 name HWIL-IN rule 10 state related 'enable'
+set firewall ipv4 name HWIL-IN rule 10 state established
+set firewall ipv4 name HWIL-IN rule 10 state related
 set firewall ipv4 name HWIL-IN rule 20 action 'accept'
-set firewall ipv4 name HWIL-IN rule 20 state new 'enable'
+set firewall ipv4 name HWIL-IN rule 20 state new
 set firewall ipv4 name HWIL-IN rule 20 destination address '20.3.0.0/24'
 set firewall ipv4 name HWIL-IN rule 30 action 'accept'
-set firewall ipv4 name HWIL-IN rule 30 state new 'enable'
+set firewall ipv4 name HWIL-IN rule 30 state new
 set firewall ipv4 name HWIL-IN rule 30 destination address '20.3.1.1'
 set interfaces ethernet eth2 firewall in name 'HWIL-IN'
 

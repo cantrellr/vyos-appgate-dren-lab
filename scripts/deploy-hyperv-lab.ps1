@@ -96,13 +96,13 @@ if ([string]::IsNullOrWhiteSpace($IsoWorkingRoot)) {
 }
 
 $vmDefinitions = @(
-    @{ Name = 'vyos-az-proton-ext'; Config = 'configs\azure\external.vyos'; Switches = @('az-wan') },
-    @{ Name = 'vyos-az-proton-out'; Config = 'configs\azure\outside.vyos'; Switches = @('az-wan','az-dren') },
-    @{ Name = 'vyos-az-proton-grey'; Config = 'configs\azure\grey.vyos'; Switches = @('az-dren','az-sdpc','az-sdpg','az-sdpt','az-avd') },
-    @{ Name = 'vyos-az-proton-inside'; Config = 'configs\azure\inside.vyos'; Switches = @('az-sdpc','az-domain','az-domsvc') },
-    @{ Name = 'vyos-az-proton-dev'; Config = 'configs\azure\developer.vyos'; Switches = @('az-sdpc','az-dev','az-devsvc') },
-    @{ Name = 'vyos-az-proton-sandbox'; Config = 'configs\azure\sandbox.vyos'; Switches = @('az-sdpc','az-seg') },
-    @{ Name = 'vyos-onp-out'; Config = 'configs\onprem\outside.vyos'; Switches = @('onp-underlay','onp-dren') },
+    @{ Name = 'vyos-az-ext'; Config = 'configs\azure\external.vyos'; Switches = @('Default Switch','az-wan') },
+    @{ Name = 'vyos-az-out'; Config = 'configs\azure\outside.vyos'; Switches = @('az-wan','az-dren') },
+    @{ Name = 'vyos-az-grey'; Config = 'configs\azure\grey.vyos'; Switches = @('az-dren','az-sdpc','az-sdpg','az-sdpt','az-avd') },
+    @{ Name = 'vyos-az-inside'; Config = 'configs\azure\inside.vyos'; Switches = @('az-sdpc','az-domain','az-domsvc') },
+    @{ Name = 'vyos-az-dev'; Config = 'configs\azure\developer.vyos'; Switches = @('az-sdpc','az-dev','az-devsvc') },
+    @{ Name = 'vyos-az-sandbox'; Config = 'configs\azure\sandbox.vyos'; Switches = @('az-sdpc','az-seg') },
+    @{ Name = 'vyos-onp-out'; Config = 'configs\onprem\outside.vyos'; Switches = @('onp-dren','az-dren') },
     @{ Name = 'vyos-onp-grey'; Config = 'configs\onprem\grey.vyos'; Switches = @('onp-dren','onp-sdpc','onp-sdpg','onp-sdpt','onp-avd') },
     @{ Name = 'vyos-onp-inside'; Config = 'configs\onprem\inside.vyos'; Switches = @('onp-sdpc','onp-domain','onp-domsvc') },
     @{ Name = 'vyos-onp-dev'; Config = 'configs\onprem\developer.vyos'; Switches = @('onp-sdpc','onp-dev','onp-devsvc') },

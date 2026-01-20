@@ -2,7 +2,7 @@
 param(
     [string]$RepoRoot,
     [string[]]$VmNames = @(
-        'vyos-az-proton-ext','vyos-az-proton-out','vyos-az-proton-grey','vyos-az-proton-inside','vyos-az-proton-dev','vyos-az-proton-sandbox',
+        'vyos-az-ext','vyos-az-out','vyos-az-grey','vyos-az-inside','vyos-az-dev','vyos-az-sandbox',
         'vyos-onp-out','vyos-onp-grey','vyos-onp-inside','vyos-onp-dev','vyos-onp-sandbox'
     ),
     [string[]]$SwitchNames = @(

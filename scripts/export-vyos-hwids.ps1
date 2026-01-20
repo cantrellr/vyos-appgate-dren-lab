@@ -1,5 +1,5 @@
 param(
-    [string[]]$VmNamePatterns = @('vyos-az-proton-*','vyos-onp-*'),
+    [string[]]$VmNamePatterns = @('vyos-az-*','vyos-onp-*'),
     [string]$OutputPath
 )
 

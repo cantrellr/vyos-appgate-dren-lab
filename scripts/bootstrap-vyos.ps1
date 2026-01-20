@@ -108,7 +108,38 @@ try {
             Set-Content -Path (Join-Path $tempRoot 'network-config') -Value $networkConfigLines -Encoding UTF8
         }
     } else {
-        Copy-Item -Path $ConfigPath -Destination (Join-Path $tempRoot 'config.vyos')
+        $configLines = Get-Content -Path $ConfigPath
+        $configLines = $configLines | Where-Object { $_ -and ($_.Trim() -notin @('configure','commit','save','exit')) }
+        $configText = ($configLines -join "`n")
+        $configOutPath = Join-Path $tempRoot 'config.vyos'
+        $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+        [System.IO.File]::WriteAllText($configOutPath, $configText, $utf8NoBom)
+        $applyScript = @(
+            '#!/bin/vbash',
+            'set -e',
+            'if [ "$(id -u)" -ne 0 ]; then',
+            "  echo 'Run as root (sudo -i).';",
+            '  exit 1;',
+            'fi',
+            'mkdir -p /mnt/cdrom',
+            'if ! mountpoint -q /mnt/cdrom; then',
+            '  mount /dev/sr1 /mnt/cdrom || mount /dev/sr0 /mnt/cdrom || mount /dev/cdrom /mnt/cdrom',
+            'fi',
+            'if [ ! -f /mnt/cdrom/config.vyos ]; then',
+            "  echo 'config.vyos not found on /mnt/cdrom';",
+            '  exit 1;',
+            'fi',
+            'configure',
+            'source /mnt/cdrom/config.vyos',
+            'commit',
+            'save',
+            'exit',
+            "echo 'Config applied. Rebooting...';",
+            'reboot'
+        )
+        $applyPath = Join-Path $tempRoot 'apply-config.sh'
+        $applyText = ($applyScript -join "`n")
+        [System.IO.File]::WriteAllText($applyPath, $applyText, $utf8NoBom)
     }
 
     $oscdimg = Get-Command -Name oscdimg.exe -ErrorAction SilentlyContinue

@@ -1,5 +1,5 @@
 configure
-set system host-name 'az-proton-out'
+set system host-name 'az-out'
 
 # To External (WAN segment)
 set interfaces ethernet eth0 description 'WAN-SEGMENT'
@@ -15,41 +15,10 @@ set protocols static route '0.0.0.0/0' next-hop '255.254.1.1'
 # Local site internal via Grey
 set protocols static route '10.0.0.0/8' next-hop '254.254.1.2'
 
-# Remote site internal via VTI (enable after VTI is built)
-set protocols static route '20.0.0.0/8' interface 'vti0'
+# On-prem internal via On-Prem Outside
+set protocols static route '20.0.0.0/8' next-hop '254.254.1.3'
 
-# --- IPsec VTI placeholders ---
-# Replace with real underlay peer IPs and authentication.
-# Local underlay IP assumed = 255.254.1.2
-# Remote peer underlay IP must be reachable from this router.
-
-set interfaces vti vti0 address '172.31.255.1/30'
-set interfaces vti vti0 description 'DREN-to-ONP-VTI'
-
-set vpn ipsec ike-group DREN-IKE key-exchange 'ikev2'
-set vpn ipsec ike-group DREN-IKE proposal 1 dh-group '14'
-set vpn ipsec ike-group DREN-IKE proposal 1 encryption 'aes256'
-set vpn ipsec ike-group DREN-IKE proposal 1 hash 'sha256'
-
-set vpn ipsec esp-group DREN-ESP proposal 1 encryption 'aes256'
-set vpn ipsec esp-group DREN-ESP proposal 1 hash 'sha256'
-set vpn ipsec esp-group DREN-ESP pfs 'enable'
-set vpn ipsec esp-group DREN-ESP compression 'disable'
-
-# Peer placeholder (replace 255.254.2.2 with actual ONP Outside underlay IP)
-set vpn ipsec site-to-site peer '255.254.2.2' authentication mode 'pre-shared-secret'
-set vpn ipsec site-to-site peer '255.254.2.2' authentication pre-shared-secret 'REPLACE_WITH_PSK'
-set vpn ipsec site-to-site peer '255.254.2.2' ike-group 'DREN-IKE'
-set vpn ipsec site-to-site peer '255.254.2.2' esp-group 'DREN-ESP'
-set vpn ipsec site-to-site peer '255.254.2.2' local-address '255.254.1.2'
-set vpn ipsec site-to-site peer '255.254.2.2' vti bind 'vti0'
-
-# NAT for Azure internal to External (do not NAT to tunnel)
-set nat source rule 5 description 'NO-NAT-TO-ONP'
-set nat source rule 5 outbound-interface name 'eth0'
-set nat source rule 5 source address '10.0.0.0/8'
-set nat source rule 5 destination address '20.0.0.0/8'
-set nat source rule 5 translation address 'disable'
+# NOTE: IPsec/VTI removed for lab (normal routing only)
 
 set nat source rule 10 description 'NAT-AZURE-INTERNAL-TO-WAN'
 set nat source rule 10 outbound-interface name 'eth0'

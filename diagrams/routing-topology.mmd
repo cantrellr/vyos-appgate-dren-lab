@@ -1,0 +1,51 @@
+flowchart LR
+    classDef router fill:#1f78b4,stroke:#0b3558,color:#ffffff;
+
+    subgraph Azure
+        az_ext["az-ext"]:::router
+        az_out["az-out"]:::router
+        az_grey["az-grey"]:::router
+        az_inside["az-inside\n(10.1.0.0/24, 10.1.1.0/24)"]:::router
+        az_dev["az-dev\n(10.2.0.0/24, 10.2.1.0/24)"]:::router
+        az_sandbox["az-sandbox\n(10.3.0.0/24)"]:::router
+        internet[("Internet")]
+
+        az_ext <--> |"Default Switch"| internet
+        az_ext <--> |"az-wan 255.254.1.0/24"| az_out
+        az_out <--> |"az-dren 254.254.1.0/24"| az_grey
+        az_grey <--> |"az-sdpc 10.0.0.0/24"| az_inside
+        az_grey <--> |"az-sdpc 10.0.0.0/24"| az_dev
+        az_grey <--> |"az-sdpc 10.0.0.0/24"| az_sandbox
+        az_inside --- |"az-domain 10.1.0.0/24"| az_domain["Domain"]
+        az_inside --- |"az-domsvc 10.1.1.0/24"| az_domsvc["DomSvc"]
+        az_dev --- |"az-dev 10.2.0.0/24"| az_devnet["Dev"]
+        az_dev --- |"az-devsvc 10.2.1.0/24"| az_devsvc["DevSvc"]
+        az_sandbox --- |"az-seg 10.3.0.0/24"| az_seg["Seg"]
+        az_grey --- |"az-sdpg 10.0.1.0/24"| az_sdpg["SDPG segment"]
+        az_grey --- |"az-sdpt 10.0.2.0/24"| az_sdpt["SDPT segment"]
+        az_grey --- |"az-avd 10.0.3.0/24"| az_avd["AVD segment"]
+    end
+
+    subgraph OnPrem
+        onp_out["onp-out"]:::router
+        onp_grey["onp-grey"]:::router
+        onp_inside["onp-inside\n(20.1.0.0/24, 20.1.1.0/24)"]:::router
+        onp_dev["onp-dev\n(20.2.0.0/24, 20.2.1.0/24)"]:::router
+        onp_sandbox["onp-sandbox\n(20.3.0.0/24, 20.3.1.0/24)"]:::router
+
+        onp_grey <--> |"onp-dren 254.254.2.0/24"| onp_out
+        onp_grey <--> |"onp-sdpc 20.0.0.0/24"| onp_inside
+        onp_grey <--> |"onp-sdpc 20.0.0.0/24"| onp_dev
+        onp_grey <--> |"onp-sdpc 20.0.0.0/24"| onp_sandbox
+        onp_inside --- |"onp-domain 20.1.0.0/24"| onp_domain["Domain"]
+        onp_inside --- |"onp-domsvc 20.1.1.0/24"| onp_domsvc["DomSvc"]
+        onp_dev --- |"onp-dev 20.2.0.0/24"| onp_devnet["Dev"]
+        onp_dev --- |"onp-devsvc 20.2.1.0/24"| onp_devsvc["DevSvc"]
+        onp_sandbox --- |"onp-seg 20.3.0.0/24"| onp_seg["Seg"]
+        onp_sandbox --- |"onp-hwil 20.3.1.0/24"| onp_hwil["HWIL"]
+        onp_grey --- |"onp-sdpg 20.0.1.0/24"| onp_sdpg["SDPG segment"]
+        onp_grey --- |"onp-sdpt 20.0.2.0/24"| onp_sdpt["SDPT segment"]
+        onp_grey --- |"onp-avd 20.0.3.0/24"| onp_avd["AVD segment"]
+    end
+
+    onp_out <--> |"az-dren 254.254.1.0/24"| az_out

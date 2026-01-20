@@ -31,8 +31,7 @@ $internalSwitches = @(
 )
 
 $externalSwitches = @(
-    @{ Name = 'az-wan'; Adapter = $AzureExternalAdapterName },
-    @{ Name = 'onp-underlay'; Adapter = $OnPremUnderlayAdapterName }
+    @{ Name = 'az-wan'; Adapter = $AzureExternalAdapterName }
 )
 
 function Get-AdapterNames {
@@ -53,7 +52,7 @@ function Assert-AdapterExists {
     }
 }
 
-function Ensure-SwitchInternal {
+function Ensure-SwitchPrivate {
     param([string]$Name)
 
     if (Get-VMSwitch -Name $Name -ErrorAction SilentlyContinue) {
@@ -61,8 +60,8 @@ function Ensure-SwitchInternal {
         return
     }
 
-    New-VMSwitch -Name $Name -SwitchType Internal | Out-Null
-    Write-Host "[NEW] Internal switch created: $Name"
+    New-VMSwitch -Name $Name -SwitchType Private | Out-Null
+    Write-Host "[NEW] Private switch created: $Name"
 }
 
 function Ensure-SwitchExternal {
@@ -79,15 +78,41 @@ function Ensure-SwitchExternal {
     Write-Host "[NEW] External switch created: $Name (Adapter: $AdapterName)"
 }
 
+function Ensure-SwitchHostIp {
+    param(
+        [string]$SwitchName,
+        [string]$HostIp,
+        [int]$PrefixLength
+    )
+
+    if ([string]::IsNullOrWhiteSpace($HostIp)) {
+        return
+    }
+
+    $ifAlias = "vEthernet ($SwitchName)"
+    $netAdapter = Get-NetAdapter -Name $ifAlias -ErrorAction SilentlyContinue
+    if ($null -eq $netAdapter) {
+        throw "vEthernet adapter not found: $ifAlias"
+    }
+
+    $existingIp = Get-NetIPAddress -InterfaceAlias $ifAlias -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -eq $HostIp }
+    if ($null -eq $existingIp) {
+        New-NetIPAddress -InterfaceAlias $ifAlias -IPAddress $HostIp -PrefixLength $PrefixLength -ErrorAction Stop | Out-Null
+        Write-Host "[NEW] Assigned $HostIp/$PrefixLength to $ifAlias"
+    } else {
+        Write-Host "[OK] Host IP already set on $ifAlias"
+    }
+}
+
 foreach ($name in $internalSwitches) {
-    Ensure-SwitchInternal -Name $name
+    Ensure-SwitchPrivate -Name $name
 }
 
 foreach ($ext in $externalSwitches) {
     if ($UseExternalAdapters) {
         Ensure-SwitchExternal -Name $ext.Name -AdapterName $ext.Adapter
     } else {
-        Ensure-SwitchInternal -Name $ext.Name
+        Ensure-SwitchPrivate -Name $ext.Name
     }
 }
 
