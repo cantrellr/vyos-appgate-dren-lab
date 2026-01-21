@@ -14,7 +14,7 @@ set interfaces ethernet eth1 description 'AZ-DREN'
 set interfaces ethernet eth1 address '254.254.1.1/24'
 set interfaces ethernet eth1 vrf 'AZ_DREN'
 
-set interfaces ethernet eth2 description 'ONP-UNDERLAY'
+set interfaces ethernet eth2 description 'ONP-WAN'
 set interfaces ethernet eth2 address '255.254.2.2/24'
 set interfaces ethernet eth2 vrf 'ONP_WAN'
 

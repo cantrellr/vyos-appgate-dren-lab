@@ -18,7 +18,7 @@ Network ranges are based on the attached spreadsheet `Work Lab Environment.xlsx`
 ## 3. Network topology
 ### 3.1 Site roles
 - **External (Azure only)**: upstream/WAN segment for BYOD reachability and/or egress simulation.
-- **Outside**: DREN edge. Terminates the **IPsec VTI** site-to-site tunnel and provides upstream default routing. In Azure, Outside can also provide NAT/egress toward External.
+- **Outside**: DREN edge. Provides upstream default routing. In Azure, Outside can also provide NAT/egress toward External.
 - **Grey**: distribution router for site internal segments (SDPC/SDPG/SDPT/AVD) and the policy enforcement point for intra-site and inter-site traffic.
 - **Inside / Developer**: downstream routers that host protected subnets.
 - **Sandbox**: downstream router hosting `SEG` and optional `HWIL` (On-Prem only). Enforces **HWIL → SEG only**.
@@ -33,7 +33,9 @@ See:
 | Zone | Subnet | Gateway |
 |---|---:|---:|
 | WAN (External) | 255.254.1.0/24 | 255.254.1.1 |
-| DREN | 254.254.1.0/24 | 254.254.1.1 (Outside) |
+| AZ-EXT (Internet) | 10.255.255.0/24 | 10.255.255.1 |
+| DREN | 10.254.254.0/24 | 10.254.254.1 (Outside) |
+| AZ-OUT | 254.254.1.0/24 | 254.254.1.1 (Outside) |
 | SDPC | 10.0.0.0/24 | 10.0.0.1 (Grey) |
 | SDPG | 10.0.1.0/24 | 10.0.1.1 (Grey) |
 | SDPT | 10.0.2.0/24 | 10.0.2.1 (Grey) |
@@ -48,7 +50,8 @@ See:
 | Zone | Subnet | Gateway |
 |---|---:|---:|
 | WAN (External, optional) | 255.254.2.0/24 | 255.254.2.1 |
-| DREN | 254.254.2.0/24 | 254.254.2.1 (Outside) |
+| DREN | 10.254.254.0/24 | 10.254.254.2 (Outside) |
+| ONP-OUT | 254.254.2.0/24 | 254.254.2.1 (Outside) |
 | SDPC | 20.0.0.0/24 | 20.0.0.1 (Grey) |
 | SDPG | 20.0.1.0/24 | 20.0.1.1 (Grey) |
 | SDPT | 20.0.2.0/24 | 20.0.2.1 (Grey) |
@@ -72,14 +75,8 @@ The spreadsheet does not define the uplink IPs from downstream routers into the 
   - Developer uplink: `20.0.0.3/24`
   - Sandbox uplink: `20.0.0.4/24`
 
-### 5.2 IPsec underlay endpoints (not in the spreadsheet)
-To connect the two DREN segments, Outside routers use an **IPsec VTI**.
-
-You must supply:
-- Local/remote peer public/underlay IPs
-- PSK or certificate authentication
-
-This repo uses placeholders and a sample VTI /30 (`172.31.255.0/30`).
+### 5.2 Cross-site transit
+Outside routers exchange routes over the DREN interconnect.
 
 ## 6. Routing architecture
 ### 6.1 Inside the site
@@ -88,7 +85,7 @@ This repo uses placeholders and a sample VTI /30 (`172.31.255.0/30`).
 
 ### 6.2 Cross-site
 - Grey forwards remote-site traffic to its local **Outside** via DREN.
-- Outside routers route remote-site prefixes over the **VTI**.
+- Outside routers route remote-site prefixes over DREN.
 
 ## 7. Security policy model
 ### 7.1 High-level traffic matrix
@@ -139,9 +136,9 @@ This repo uses placeholders and a sample VTI /30 (`172.31.255.0/30`).
 - Keep a rollback plan: `show system commit` and `rollback <n>`.
 - Centralize logs and enable audit where feasible.
 
-### 8.2 IPsec/VTI best practices
+### 8.2 DREN best practices
 - Pin MTU/MSS if you see fragmentation.
-- Monitor tunnel health with SLAs (ping over VTI) and log events.
+- Monitor DREN reachability with periodic pings and log events.
 
 ### 8.3 Hyper-V NIC stability
 - Map interfaces by MAC using `hw-id` to prevent renumbering.

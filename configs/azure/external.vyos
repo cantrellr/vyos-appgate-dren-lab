@@ -2,7 +2,7 @@ configure
 set system host-name 'az-ext'
 
 # Internet uplink (Default Switch)
-set interfaces ethernet eth0 description 'INTERNET-UPLINK'
+set interfaces ethernet eth0 description 'AZ-EXT'
 set interfaces ethernet eth0 address '10.255.255.2/24'
 
 # WAN segment

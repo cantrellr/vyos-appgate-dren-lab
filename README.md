@@ -4,7 +4,7 @@ This repo is a **paste-ready** starting point for configuring a 2-site lab netwo
 
 It implements:
 - Two sites: **Azure (PROTON)** and **On-Prem (RCDN-U)**
-- A routed **DREN-to-DREN** interconnect using **IPsec VTI** between the **Outside** routers
+- A routed **DREN-to-DREN** interconnect between the **Outside** routers
 - Segmentation + least privilege flows for an **Appgate SDP** deployment:
   - **SDPC** = Appgate Controllers
   - **SDPG/SDPT** = Appgate Gateways
@@ -25,12 +25,12 @@ It implements:
 - `scripts/` – helper scripts for automation (deploy, cleanup, SSH push)
 
 ## Quick start
-1. Review **assumptions** in `docs/System-Design.md` (especially the underlay IPs for the IPsec tunnel and the SDPC transit IPs for Inside/Dev/Sandbox routers).
+1. Review **assumptions** in `docs/System-Design.md` (especially the SDPC transit IPs for Inside/Dev/Sandbox routers).
 2. On each VyOS VM, map NICs deterministically using `hw-id` (MAC) per Hyper-V.
 3. Apply configs:
    - External (Azure) → Outside → Grey → Inside/Developer/Sandbox
    - On-Prem Outside → On-Prem Grey → On-Prem Inside/Developer/Sandbox
-4. Validate tunnel + routing + policy using the Runbook.
+4. Validate routing + policy using the Runbook.
 
 ## Hyper-V deployment (one command)
 The end-to-end Hyper-V deploy script creates switches, VMs, config ISOs, and DVD ordering.
@@ -46,7 +46,7 @@ powershell .\scripts\deploy-hyperv-lab.ps1
 
 Optional overrides:
 ```
-powershell .\scripts\deploy-hyperv-lab.ps1 -MemoryStartupBytes 1GB -CpuCount 1 -UseExternalAdapters -AzureExternalAdapterName "<adapter>" -OnPremUnderlayAdapterName "<adapter>"
+powershell .\scripts\deploy-hyperv-lab.ps1 -MemoryStartupBytes 1GB -CpuCount 1 -UseExternalAdapters -AzureExternalAdapterName "<adapter>"
 ```
 
 ## Hyper-V cleanup

@@ -2,7 +2,7 @@
 
 ## 1) Before you touch anything
 - Confirm Hyper-V NIC mapping (MACs) and set `hw-id` in each config.
-- Confirm which IPs will be used as the **IPsec underlay** between Outside routers.
+- Confirm the DREN addressing between Outside routers.
 - Decide whether On-Prem External/WAN exists (optional).
 
 ## 1.1) One-command Hyper-V build
@@ -48,15 +48,6 @@ show interfaces
 show ip route
 ```
 
-### IPsec + VTI
-```bash
-show vpn ipsec sa
-show vpn ipsec status
-show interfaces vti
-ping 172.31.255.2
-traceroute 20.0.1.11
-```
-
 ### Firewall hit counts
 ```bash
 show firewall ipv4 name <RULESET>
@@ -82,7 +73,7 @@ Negative tests:
 ## 5) Common failure modes
 - Asymmetric routing: ensure both sides have routes for remote prefixes and that Grey points to Outside via DREN.
 - NAT leaking into tunnel: ensure NAT exemptions exist (Azure Outside if you do WAN NAT).
-- MTU/MSS: if you see intermittent TLS issues, clamp MSS on VTI.
+- MTU/MSS: if you see intermittent TLS issues, clamp MSS on the DREN link.
 
 ## 6) Cleanup
 Remove lab VMs and switches:
