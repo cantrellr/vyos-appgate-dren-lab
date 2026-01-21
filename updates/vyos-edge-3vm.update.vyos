@@ -1,0 +1,11 @@
+set firewall group network-group EXTERNAL_UPLINK network '10.255.255.0/24'
+
+set firewall ipv4 name AZ-DREN-IN rule 50 action 'accept'
+set firewall ipv4 name AZ-DREN-IN rule 50 state new
+set firewall ipv4 name AZ-DREN-IN rule 50 source group address-group 'AZ_INTERNET_POOL_DOMAIN'
+set firewall ipv4 name AZ-DREN-IN rule 50 destination group network-group 'EXTERNAL_UPLINK'
+
+set firewall ipv4 name ONP-DREN-IN rule 50 action 'accept'
+set firewall ipv4 name ONP-DREN-IN rule 50 state new
+set firewall ipv4 name ONP-DREN-IN rule 50 source group address-group 'ONP_INTERNET_POOL_DOMAIN'
+set firewall ipv4 name ONP-DREN-IN rule 50 destination group network-group 'EXTERNAL_UPLINK'

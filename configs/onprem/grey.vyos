@@ -21,6 +21,7 @@ set protocols static route '0.0.0.0/0' next-hop '254.254.2.1'
 
 # Route Azure internal via Outside on ONP-OUT
 set protocols static route '10.0.0.0/8' next-hop '254.254.2.1'
+set protocols static route '10.255.255.0/24' next-hop '254.254.2.1'
 
 # Downstream protected subnets via router uplinks on SDPC (assumption)
 set protocols static route '20.1.0.0/24' next-hop '20.0.0.2'
@@ -112,6 +113,12 @@ set firewall ipv4 name SDPC-TO-DREN-GW rule 17 state new
 set firewall ipv4 name SDPC-TO-DREN-GW rule 17 protocol 'tcp'
 set firewall ipv4 name SDPC-TO-DREN-GW rule 17 source group address-group 'INTERNET_POOL_DOMAIN'
 set firewall ipv4 name SDPC-TO-DREN-GW rule 17 destination port '443'
+
+set firewall group network-group EXTERNAL_UPLINK network '10.255.255.0/24'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 18 action 'accept'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 18 state new
+set firewall ipv4 name SDPC-TO-DREN-GW rule 18 source group address-group 'INTERNET_POOL_DOMAIN'
+set firewall ipv4 name SDPC-TO-DREN-GW rule 18 destination group network-group 'EXTERNAL_UPLINK'
 
 set firewall ipv4 name SDPC-TO-DREN-GW rule 20 action 'accept'
 set firewall ipv4 name SDPC-TO-DREN-GW rule 20 state new

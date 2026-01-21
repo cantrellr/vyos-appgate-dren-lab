@@ -1,0 +1,1 @@
+set protocols static route '20.0.0.0/8' next-hop '255.254.1.2'
