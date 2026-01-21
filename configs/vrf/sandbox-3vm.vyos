@@ -31,43 +31,49 @@ set protocols static route '0.0.0.0/0' next-hop '10.0.0.1' vrf 'AZ_SEG'
 set protocols static route '0.0.0.0/0' next-hop '20.0.0.1' vrf 'ONP_SEG'
 
 # AZ SEG egress hardening (optional)
-set firewall ipv4 name AZ-SEG-IN default-action 'drop'
-set firewall ipv4 name AZ-SEG-IN rule 10 action 'accept'
-set firewall ipv4 name AZ-SEG-IN rule 10 state established
-set firewall ipv4 name AZ-SEG-IN rule 10 state related
-set firewall ipv4 name AZ-SEG-IN rule 20 action 'accept'
-set firewall ipv4 name AZ-SEG-IN rule 20 state new
-set firewall ipv4 name AZ-SEG-IN rule 20 destination address '10.0.0.1'
-set firewall ipv4 name AZ-SEG-IN rule 30 action 'accept'
-set firewall ipv4 name AZ-SEG-IN rule 30 state new
-set firewall ipv4 name AZ-SEG-IN rule 30 destination address '10.3.0.1'
-set interfaces ethernet eth1 firewall in name 'AZ-SEG-IN'
+set firewall ipv4 name AZ-SEG-TO-SDPC default-action 'drop'
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 10 action 'accept'
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 10 state established
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 10 state related
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 20 action 'accept'
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 20 state new
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 20 destination address '10.0.0.1'
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 30 action 'accept'
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 30 state new
+set firewall ipv4 name AZ-SEG-TO-SDPC rule 30 destination address '10.3.0.1'
 
 # ONP SEG egress hardening (optional)
-set firewall ipv4 name ONP-SEG-IN default-action 'drop'
-set firewall ipv4 name ONP-SEG-IN rule 10 action 'accept'
-set firewall ipv4 name ONP-SEG-IN rule 10 state established
-set firewall ipv4 name ONP-SEG-IN rule 10 state related
-set firewall ipv4 name ONP-SEG-IN rule 20 action 'accept'
-set firewall ipv4 name ONP-SEG-IN rule 20 state new
-set firewall ipv4 name ONP-SEG-IN rule 20 destination address '20.0.0.1'
-set firewall ipv4 name ONP-SEG-IN rule 30 action 'accept'
-set firewall ipv4 name ONP-SEG-IN rule 30 state new
-set firewall ipv4 name ONP-SEG-IN rule 30 destination address '20.3.0.1'
-set interfaces ethernet eth3 firewall in name 'ONP-SEG-IN'
+set firewall ipv4 name ONP-SEG-TO-SDPC default-action 'drop'
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 10 action 'accept'
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 10 state established
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 10 state related
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 20 action 'accept'
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 20 state new
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 20 destination address '20.0.0.1'
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 30 action 'accept'
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 30 state new
+set firewall ipv4 name ONP-SEG-TO-SDPC rule 30 destination address '20.3.0.1'
 
 # ONP HWIL isolation
-set firewall ipv4 name ONP-HWIL-IN default-action 'drop'
-set firewall ipv4 name ONP-HWIL-IN rule 10 action 'accept'
-set firewall ipv4 name ONP-HWIL-IN rule 10 state established
-set firewall ipv4 name ONP-HWIL-IN rule 10 state related
-set firewall ipv4 name ONP-HWIL-IN rule 20 action 'accept'
-set firewall ipv4 name ONP-HWIL-IN rule 20 state new
-set firewall ipv4 name ONP-HWIL-IN rule 20 destination address '20.3.0.0/24'
-set firewall ipv4 name ONP-HWIL-IN rule 30 action 'accept'
-set firewall ipv4 name ONP-HWIL-IN rule 30 state new
-set firewall ipv4 name ONP-HWIL-IN rule 30 destination address '20.3.1.1'
-set interfaces ethernet eth4 firewall in name 'ONP-HWIL-IN'
+set firewall ipv4 name ONP-HWIL-TO-SEG default-action 'drop'
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 10 action 'accept'
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 10 state established
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 10 state related
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 20 action 'accept'
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 20 state new
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 20 destination address '20.3.0.0/24'
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 30 action 'accept'
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 30 state new
+set firewall ipv4 name ONP-HWIL-TO-SEG rule 30 destination address '20.3.1.1'
+
+set firewall zone AZ_SEG member interface 'eth1'
+set firewall zone AZ_SDPC member interface 'eth0'
+set firewall zone ONP_SEG member interface 'eth3'
+set firewall zone ONP_SDPC member interface 'eth2'
+set firewall zone ONP_HWIL member interface 'eth4'
+set firewall zone AZ_SDPC from AZ_SEG firewall name 'AZ-SEG-TO-SDPC'
+set firewall zone ONP_SDPC from ONP_SEG firewall name 'ONP-SEG-TO-SDPC'
+set firewall zone ONP_SEG from ONP_HWIL firewall name 'ONP-HWIL-TO-SEG'
 
 commit
 save
