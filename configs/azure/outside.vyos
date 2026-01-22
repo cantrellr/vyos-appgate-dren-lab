@@ -34,6 +34,9 @@ set firewall zone WAN from AZOUT firewall name 'WAN-OUT'
 # Default route to External
 set protocols static route '0.0.0.0/0' next-hop '223.223.1.1'
 
+# NATOUT subnet via az-ext (avoid 10.0.0.0/8 loop)
+set protocols static route '10.255.255.0/24' next-hop '223.223.1.1'
+
 # Local site internal via Grey
 set protocols static route '10.0.0.0/8' next-hop '222.222.10.2'
 
