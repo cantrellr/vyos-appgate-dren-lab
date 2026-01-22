@@ -1,8 +1,8 @@
 flowchart LR
   subgraph AZ[Azure PROTON]
-    EXT[External Router\nWAN 255.254.1.1/24\nAZ-EXT 10.255.255.2/24]
-    OUT[Outside Router\nWAN 255.254.1.2/24\nAZ-OUT 254.254.1.1/24\nDREN 10.254.254.1/24]
-    GREY[Grey Router\nAZ-OUT 254.254.1.2/24\nSDPC 10.0.0.1/24\nSDPG 10.0.1.1/24\nSDPT 10.0.2.1/24\nAVD  10.0.3.1/24]
+    EXT[External Router\nWAN 223.223.1.1/24\nAZ-EXT 10.255.255.2/24]
+    OUT[Outside Router\nWAN 223.223.1.2/24\nAZ-OUT 222.222.10.1/24\nDREN 222.222.1.1/24]
+    GREY[Grey Router\nAZ-OUT 222.222.10.2/24\nSDPC 10.0.0.1/24\nSDPG 10.0.1.1/24\nSDPT 10.0.2.1/24\nAVD  10.0.3.1/24]
     INS[Inside Router\nUplink 10.0.0.2/24\nDOMAIN 10.1.0.1/24\nDOMSVC 10.1.1.1/24]
     DEV[Developer Router\nUplink 10.0.0.3/24\nDEV 10.2.0.1/24\nDEVSVC 10.2.1.1/24]
     SBX[Sandbox Router\nUplink 10.0.0.4/24\nSEG 10.3.0.1/24]
@@ -15,8 +15,8 @@ flowchart LR
   end
 
   subgraph ONP[On-Prem RCDN-U]
-    OUT2[Outside Router\nONP-OUT 254.254.2.1/24\nDREN 10.254.254.2/24]
-    GREY2[Grey Router\nONP-OUT 254.254.2.2/24\nSDPC 20.0.0.1/24\nSDPG 20.0.1.1/24\nSDPT 20.0.2.1/24\nAVD  20.0.3.1/24]
+    OUT2[Outside Router\nONP-OUT 222.222.20.1/24\nDREN 222.222.1.2/24]
+    GREY2[Grey Router\nONP-OUT 222.222.20.2/24\nSDPC 20.0.0.1/24\nSDPG 20.0.1.1/24\nSDPT 20.0.2.1/24\nAVD  20.0.3.1/24]
     INS2[Inside Router\nUplink 20.0.0.2/24\nDOMAIN 20.1.0.1/24\nDOMSVC 20.1.1.1/24]
     DEV2[Developer Router\nUplink 20.0.0.3/24\nDEV 20.2.0.1/24\nDEVSVC 20.2.1.1/24]
     SBX2[Sandbox Router\nUplink 20.0.0.4/24\nSEG 20.3.0.1/24\nHWIL 20.3.1.1/24]

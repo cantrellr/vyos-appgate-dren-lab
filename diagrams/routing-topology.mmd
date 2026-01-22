@@ -3,7 +3,7 @@ flowchart LR
 
     subgraph Azure
         az_ext["az-ext"]:::router
-        az_out["az-out\naz-wan 255.254.1.2/24\naz-out 254.254.1.1/24\ndren 10.254.254.1/24"]:::router
+        az_out["az-out\naz-wan 223.223.1.2/24\naz-out 222.222.10.1/24\ndren 222.222.1.1/24"]:::router
         az_grey["az-grey"]:::router
         az_inside["az-inside\n(10.1.0.0/24, 10.1.1.0/24)"]:::router
         az_dev["az-dev\n(10.2.0.0/24, 10.2.1.0/24)"]:::router
@@ -11,8 +11,8 @@ flowchart LR
         internet[("Internet")]
 
         az_ext <--> |"az-ext 10.255.255.0/24"| internet
-        az_ext <--> |"az-wan 255.254.1.0/24"| az_out
-        az_out <--> |"az-out 254.254.1.0/24"| az_grey
+        az_ext <--> |"az-wan 223.223.1.0/24"| az_out
+        az_out <--> |"az-out 222.222.10.0/24"| az_grey
         az_grey <--> |"az-sdpc 10.0.0.0/24"| az_inside
         az_grey <--> |"az-sdpc 10.0.0.0/24"| az_dev
         az_grey <--> |"az-sdpc 10.0.0.0/24"| az_sandbox
@@ -33,7 +33,7 @@ flowchart LR
         onp_dev["onp-dev\n(20.2.0.0/24, 20.2.1.0/24)"]:::router
         onp_sandbox["onp-sandbox\n(20.3.0.0/24, 20.3.1.0/24)"]:::router
 
-        onp_grey <--> |"onp-out 254.254.2.0/24"| onp_out
+        onp_grey <--> |"onp-out 222.222.20.0/24"| onp_out
         onp_grey <--> |"onp-sdpc 20.0.0.0/24"| onp_inside
         onp_grey <--> |"onp-sdpc 20.0.0.0/24"| onp_dev
         onp_grey <--> |"onp-sdpc 20.0.0.0/24"| onp_sandbox
@@ -48,4 +48,4 @@ flowchart LR
         onp_grey --- |"onp-avd 20.0.3.0/24"| onp_avd["AVD segment"]
     end
 
-    onp_out <--> |"dren 10.254.254.0/24"| az_out
+    onp_out <--> |"dren 222.222.1.0/24"| az_out

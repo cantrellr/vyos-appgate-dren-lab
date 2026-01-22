@@ -1,6 +1,6 @@
 set firewall group network-group EXTERNAL_UPLINK network '10.255.255.0/24'
 
-set protocols static route '10.255.255.0/24' next-hop '254.254.2.1'
+set protocols static route '10.255.255.0/24' next-hop '222.222.20.1'
 
 set firewall ipv4 name SDPC-TO-DREN-GW rule 18 action 'accept'
 set firewall ipv4 name SDPC-TO-DREN-GW rule 18 state new

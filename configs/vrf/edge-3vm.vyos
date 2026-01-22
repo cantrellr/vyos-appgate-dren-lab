@@ -7,27 +7,27 @@ set vrf name ONP_WAN table '20'
 set vrf name ONP_DREN table '21'
 
 set interfaces ethernet eth0 description 'AZ-WAN'
-set interfaces ethernet eth0 address '255.254.1.2/24'
+set interfaces ethernet eth0 address '223.223.1.2/24'
 set interfaces ethernet eth0 vrf 'AZ_WAN'
 
 set interfaces ethernet eth1 description 'AZ-DREN'
-set interfaces ethernet eth1 address '254.254.1.1/24'
+set interfaces ethernet eth1 address '222.222.10.1/24'
 set interfaces ethernet eth1 vrf 'AZ_DREN'
 
 set interfaces ethernet eth2 description 'ONP-WAN'
-set interfaces ethernet eth2 address '255.254.2.2/24'
+set interfaces ethernet eth2 address '223.223.2.2/24'
 set interfaces ethernet eth2 vrf 'ONP_WAN'
 
 set interfaces ethernet eth3 description 'ONP-DREN'
-set interfaces ethernet eth3 address '254.254.2.1/24'
+set interfaces ethernet eth3 address '222.222.20.1/24'
 set interfaces ethernet eth3 vrf 'ONP_DREN'
 
 # Routing
-set protocols static route '0.0.0.0/0' next-hop '255.254.1.1' vrf 'AZ_WAN'
-set protocols static route '0.0.0.0/0' next-hop '255.254.2.1' vrf 'ONP_WAN'
+set protocols static route '0.0.0.0/0' next-hop '223.223.1.1' vrf 'AZ_WAN'
+set protocols static route '0.0.0.0/0' next-hop '223.223.2.1' vrf 'ONP_WAN'
 
-set protocols static route '10.0.0.0/8' next-hop '254.254.1.2' vrf 'AZ_DREN'
-set protocols static route '20.0.0.0/8' next-hop '254.254.2.2' vrf 'ONP_DREN'
+set protocols static route '10.0.0.0/8' next-hop '222.222.10.2' vrf 'AZ_DREN'
+set protocols static route '20.0.0.0/8' next-hop '222.222.20.2' vrf 'ONP_DREN'
 
 # Domain pools allowed to reach Internet
 set firewall group address-group AZ_INTERNET_POOL_DOMAIN address '10.1.0.21-10.1.0.29'

@@ -3,7 +3,7 @@ set system host-name 'az-grey'
 
 # AZ-OUT
 set interfaces ethernet eth0 description 'AZ-OUT'
-set interfaces ethernet eth0 address '254.254.1.2/24'
+set interfaces ethernet eth0 address '222.222.10.2/24'
 
 # Internal segments
 set interfaces ethernet eth1 description 'SDPC'
@@ -19,8 +19,8 @@ set interfaces ethernet eth4 description 'AVD'
 set interfaces ethernet eth4 address '10.0.3.1/24'
 
 # Routing
-set protocols static route '0.0.0.0/0' next-hop '254.254.1.1'
-set protocols static route '20.0.0.0/8' next-hop '254.254.1.1'
+set protocols static route '0.0.0.0/0' next-hop '222.222.10.1'
+set protocols static route '20.0.0.0/8' next-hop '222.222.10.1'
 
 # Downstream protected subnets via router uplinks on SDPC (assumption)
 set protocols static route '10.1.0.0/24' next-hop '10.0.0.2'

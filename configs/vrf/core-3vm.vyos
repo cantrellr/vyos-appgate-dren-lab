@@ -6,7 +6,7 @@ set vrf name ONP_CORE table '200'
 
 # AZ interfaces (AZ_CORE VRF)
 set interfaces ethernet eth0 description 'AZ-DREN'
-set interfaces ethernet eth0 address '254.254.1.2/24'
+set interfaces ethernet eth0 address '222.222.10.2/24'
 set interfaces ethernet eth0 vrf 'AZ_CORE'
 
 set interfaces ethernet eth1 description 'AZ-SDPC'
@@ -43,7 +43,7 @@ set interfaces ethernet eth8 vrf 'AZ_CORE'
 
 # ONP interfaces (ONP_CORE VRF)
 set interfaces ethernet eth9 description 'ONP-DREN'
-set interfaces ethernet eth9 address '254.254.2.2/24'
+set interfaces ethernet eth9 address '222.222.20.2/24'
 set interfaces ethernet eth9 vrf 'ONP_CORE'
 
 set interfaces ethernet eth10 description 'ONP-SDPC'
@@ -79,11 +79,11 @@ set interfaces ethernet eth17 address '20.2.1.1/24'
 set interfaces ethernet eth17 vrf 'ONP_CORE'
 
 # Routing to EDGE
-set protocols static route '0.0.0.0/0' next-hop '254.254.1.1' vrf 'AZ_CORE'
-set protocols static route '20.0.0.0/8' next-hop '254.254.1.1' vrf 'AZ_CORE'
+set protocols static route '0.0.0.0/0' next-hop '222.222.10.1' vrf 'AZ_CORE'
+set protocols static route '20.0.0.0/8' next-hop '222.222.10.1' vrf 'AZ_CORE'
 
-set protocols static route '0.0.0.0/0' next-hop '254.254.2.1' vrf 'ONP_CORE'
-set protocols static route '10.0.0.0/8' next-hop '254.254.2.1' vrf 'ONP_CORE'
+set protocols static route '0.0.0.0/0' next-hop '222.222.20.1' vrf 'ONP_CORE'
+set protocols static route '10.0.0.0/8' next-hop '222.222.20.1' vrf 'ONP_CORE'
 
 # Network groups (AZ)
 set firewall group network-group AZ_LOCAL_GW network '10.0.1.0/24'

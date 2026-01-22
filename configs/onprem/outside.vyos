@@ -3,20 +3,20 @@ set system host-name 'onp-out'
 
 # On-Prem Outside
 set interfaces ethernet eth0 description 'ONP-OUT'
-set interfaces ethernet eth0 address '254.254.2.1/24'
+set interfaces ethernet eth0 address '222.222.20.1/24'
 
 # DREN (to az-out)
 set interfaces ethernet eth1 description 'DREN'
-set interfaces ethernet eth1 address '10.254.254.2/24'
+set interfaces ethernet eth1 address '222.222.1.2/24'
 
 # Route local site internal via Grey
-set protocols static route '20.0.0.0/8' next-hop '254.254.2.2'
+set protocols static route '20.0.0.0/8' next-hop '222.222.20.2'
 
 # Route Azure internal via Azure Outside
-set protocols static route '10.0.0.0/8' next-hop '10.254.254.1'
+set protocols static route '10.0.0.0/8' next-hop '222.222.1.1'
 
 # Default route to Azure Outside (egress via az-ext)
-set protocols static route '0.0.0.0/0' next-hop '10.254.254.1'
+set protocols static route '0.0.0.0/0' next-hop '222.222.1.1'
 
 commit
 save

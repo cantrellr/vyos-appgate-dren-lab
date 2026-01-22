@@ -3,15 +3,15 @@ set system host-name 'az-out'
 
 # To External (WAN segment)
 set interfaces ethernet eth0 description 'WAN-SEGMENT'
-set interfaces ethernet eth0 address '255.254.1.2/24'
+set interfaces ethernet eth0 address '223.223.1.2/24'
 
 # To DREN (local)
 set interfaces ethernet eth1 description 'DREN'
-set interfaces ethernet eth1 address '10.254.254.1/24'
+set interfaces ethernet eth1 address '222.222.1.1/24'
 
 # To Grey (AZ-OUT)
 set interfaces ethernet eth2 description 'AZ-OUT'
-set interfaces ethernet eth2 address '254.254.1.1/24'
+set interfaces ethernet eth2 address '222.222.10.1/24'
 
 # Egress control: only domain pools can reach WAN
 set firewall group address-group INTERNET_POOL_DOMAIN address '10.1.0.21-10.1.0.29'
@@ -32,13 +32,13 @@ set firewall zone WAN from DREN firewall name 'WAN-OUT'
 set firewall zone WAN from AZOUT firewall name 'WAN-OUT'
 
 # Default route to External
-set protocols static route '0.0.0.0/0' next-hop '255.254.1.1'
+set protocols static route '0.0.0.0/0' next-hop '223.223.1.1'
 
 # Local site internal via Grey
-set protocols static route '10.0.0.0/8' next-hop '254.254.1.2'
+set protocols static route '10.0.0.0/8' next-hop '222.222.10.2'
 
 # On-prem internal via On-Prem Outside
-set protocols static route '20.0.0.0/8' next-hop '10.254.254.2'
+set protocols static route '20.0.0.0/8' next-hop '222.222.1.2'
 
 
 commit

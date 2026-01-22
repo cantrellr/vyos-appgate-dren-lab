@@ -2,7 +2,7 @@ configure
 set system host-name 'onp-grey'
 
 set interfaces ethernet eth0 description 'ONP-OUT'
-set interfaces ethernet eth0 address '254.254.2.2/24'
+set interfaces ethernet eth0 address '222.222.20.2/24'
 
 set interfaces ethernet eth1 description 'SDPC'
 set interfaces ethernet eth1 address '20.0.0.1/24'
@@ -17,11 +17,11 @@ set interfaces ethernet eth4 description 'AVD'
 set interfaces ethernet eth4 address '20.0.3.1/24'
 
 # Default route to Outside (ONP-OUT) for internet-bound traffic
-set protocols static route '0.0.0.0/0' next-hop '254.254.2.1'
+set protocols static route '0.0.0.0/0' next-hop '222.222.20.1'
 
 # Route Azure internal via Outside on ONP-OUT
-set protocols static route '10.0.0.0/8' next-hop '254.254.2.1'
-set protocols static route '10.255.255.0/24' next-hop '254.254.2.1'
+set protocols static route '10.0.0.0/8' next-hop '222.222.20.1'
+set protocols static route '10.255.255.0/24' next-hop '222.222.20.1'
 
 # Downstream protected subnets via router uplinks on SDPC (assumption)
 set protocols static route '20.1.0.0/24' next-hop '20.0.0.2'
