@@ -4,7 +4,6 @@ set system host-name 'az-out'
 # To External (WAN segment)
 set interfaces ethernet eth0 description 'WAN-SEGMENT'
 set interfaces ethernet eth0 address '255.254.1.2/24'
-set interfaces ethernet eth0 firewall out name 'WAN-OUT'
 
 # To DREN (local)
 set interfaces ethernet eth1 description 'DREN'
@@ -25,6 +24,12 @@ set firewall ipv4 name WAN-OUT rule 10 state related
 set firewall ipv4 name WAN-OUT rule 20 action 'accept'
 set firewall ipv4 name WAN-OUT rule 20 state new
 set firewall ipv4 name WAN-OUT rule 20 source group address-group 'INTERNET_POOL_DOMAIN'
+
+set firewall zone WAN interface 'eth0'
+set firewall zone DREN interface 'eth1'
+set firewall zone AZOUT interface 'eth2'
+set firewall zone WAN from DREN firewall name 'WAN-OUT'
+set firewall zone WAN from AZOUT firewall name 'WAN-OUT'
 
 # Default route to External
 set protocols static route '0.0.0.0/0' next-hop '255.254.1.1'
