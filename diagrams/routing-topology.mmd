@@ -3,7 +3,7 @@ flowchart LR
 
     subgraph Azure
         az_ext["az-ext"]:::router
-        az_out["az-out"]:::router
+        az_out["az-out\naz-wan 255.254.1.2/24\naz-out 254.254.1.1/24\ndren 10.254.254.1/24"]:::router
         az_grey["az-grey"]:::router
         az_inside["az-inside\n(10.1.0.0/24, 10.1.1.0/24)"]:::router
         az_dev["az-dev\n(10.2.0.0/24, 10.2.1.0/24)"]:::router

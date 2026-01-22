@@ -4,10 +4,27 @@ set system host-name 'az-out'
 # To External (WAN segment)
 set interfaces ethernet eth0 description 'WAN-SEGMENT'
 set interfaces ethernet eth0 address '255.254.1.2/24'
+set interfaces ethernet eth0 firewall out name 'WAN-OUT'
 
 # To DREN (local)
 set interfaces ethernet eth1 description 'DREN'
 set interfaces ethernet eth1 address '10.254.254.1/24'
+
+# To Grey (AZ-OUT)
+set interfaces ethernet eth2 description 'AZ-OUT'
+set interfaces ethernet eth2 address '254.254.1.1/24'
+
+# Egress control: only domain pools can reach WAN
+set firewall group address-group INTERNET_POOL_DOMAIN address '10.1.0.21-10.1.0.29'
+set firewall group address-group INTERNET_POOL_DOMAIN address '20.1.0.21-20.1.0.29'
+
+set firewall ipv4 name WAN-OUT default-action 'drop'
+set firewall ipv4 name WAN-OUT rule 10 action 'accept'
+set firewall ipv4 name WAN-OUT rule 10 state established
+set firewall ipv4 name WAN-OUT rule 10 state related
+set firewall ipv4 name WAN-OUT rule 20 action 'accept'
+set firewall ipv4 name WAN-OUT rule 20 state new
+set firewall ipv4 name WAN-OUT rule 20 source group address-group 'INTERNET_POOL_DOMAIN'
 
 # Default route to External
 set protocols static route '0.0.0.0/0' next-hop '255.254.1.1'
@@ -18,15 +35,6 @@ set protocols static route '10.0.0.0/8' next-hop '254.254.1.2'
 # On-prem internal via On-Prem Outside
 set protocols static route '20.0.0.0/8' next-hop '10.254.254.2'
 
-set nat source rule 10 description 'NAT-AZURE-INTERNAL-TO-WAN'
-set nat source rule 10 outbound-interface name 'eth0'
-set nat source rule 10 source address '10.0.0.0/8'
-set nat source rule 10 translation address masquerade
-
-set nat source rule 15 description 'NAT-ONP-DOMAIN-POOL-TO-WAN'
-set nat source rule 15 outbound-interface name 'eth0'
-set nat source rule 15 source address '20.1.0.21-20.1.0.29'
-set nat source rule 15 translation address masquerade
 
 commit
 save

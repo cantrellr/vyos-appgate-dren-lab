@@ -120,11 +120,6 @@ if ($CreateVms -and (-not [string]::IsNullOrWhiteSpace($VhdRoot))) {
     }
 }
 
-if ($UseVhdTemplate -and $ConfigIsoMode -ne 'NoCloud') {
-    Write-Host '[WARN] For VHDX boot, forcing ConfigIsoMode=NoCloud.'
-    $ConfigIsoMode = 'NoCloud'
-}
-
 $effectiveGeneration = if ($VmGeneration -eq 0) {
     if ($UseVhdTemplate) { 2 } else { 1 }
 } else {
@@ -133,8 +128,8 @@ $effectiveGeneration = if ($VmGeneration -eq 0) {
 
 $vmDefinitions = @(
     @{ Name = 'vyos-az-ext'; Config = 'configs\azure\external.vyos'; Switches = @('Default Switch','az-wan') },
-    @{ Name = 'vyos-az-out'; Config = 'configs\azure\outside.vyos'; Switches = @('az-wan','az-dren') },
-    @{ Name = 'vyos-az-grey'; Config = 'configs\azure\grey.vyos'; Switches = @('az-dren','az-sdpc','az-sdpg','az-sdpt','az-avd') },
+    @{ Name = 'vyos-az-out'; Config = 'configs\azure\outside.vyos'; Switches = @('az-wan','az-dren','az-out') },
+    @{ Name = 'vyos-az-grey'; Config = 'configs\azure\grey.vyos'; Switches = @('az-out','az-sdpc','az-sdpg','az-sdpt','az-avd') },
     @{ Name = 'vyos-az-inside'; Config = 'configs\azure\inside.vyos'; Switches = @('az-sdpc','az-domain','az-domsvc') },
     @{ Name = 'vyos-az-dev'; Config = 'configs\azure\developer.vyos'; Switches = @('az-sdpc','az-dev','az-devsvc') },
     @{ Name = 'vyos-az-sandbox'; Config = 'configs\azure\sandbox.vyos'; Switches = @('az-sdpc','az-seg') },

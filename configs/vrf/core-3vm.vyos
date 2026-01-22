@@ -339,11 +339,11 @@ set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 destination group network-g
 set firewall ipv4 name ONP-GW-TO-REMOTE-DOWN rule 30 destination group port-group 'PROTECTED_UDP'
 
 # Bind AZ zones
-set firewall zone AZ_SDPC member interface 'eth1'
-set firewall zone AZ_SDPG member interface 'eth2'
-set firewall zone AZ_SDPT member interface 'eth3'
-set firewall zone AZ_AVD member interface 'eth4'
-set firewall zone AZ_DREN member interface 'eth0'
+set firewall zone AZ_SDPC interface 'eth1'
+set firewall zone AZ_SDPG interface 'eth2'
+set firewall zone AZ_SDPT interface 'eth3'
+set firewall zone AZ_AVD interface 'eth4'
+set firewall zone AZ_DREN interface 'eth0'
 
 set firewall zone AZ_SDPG from AZ_SDPC firewall name 'AZ-SDPC-TO-GW'
 set firewall zone AZ_SDPT from AZ_SDPC firewall name 'AZ-SDPC-TO-GW'
@@ -359,11 +359,11 @@ set firewall zone AZ_DREN from AZ_SDPG firewall name 'AZ-GW-TO-REMOTE-DOWN'
 set firewall zone AZ_DREN from AZ_SDPT firewall name 'AZ-GW-TO-REMOTE-DOWN'
 
 # Bind ONP zones
-set firewall zone ONP_SDPC member interface 'eth10'
-set firewall zone ONP_SDPG member interface 'eth11'
-set firewall zone ONP_SDPT member interface 'eth12'
-set firewall zone ONP_AVD member interface 'eth13'
-set firewall zone ONP_DREN member interface 'eth9'
+set firewall zone ONP_SDPC interface 'eth10'
+set firewall zone ONP_SDPG interface 'eth11'
+set firewall zone ONP_SDPT interface 'eth12'
+set firewall zone ONP_AVD interface 'eth13'
+set firewall zone ONP_DREN interface 'eth9'
 
 set firewall zone ONP_SDPG from ONP_SDPC firewall name 'ONP-SDPC-TO-GW'
 set firewall zone ONP_SDPT from ONP_SDPC firewall name 'ONP-SDPC-TO-GW'

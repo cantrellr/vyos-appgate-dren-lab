@@ -69,10 +69,11 @@ From AVD subnet:
 Negative tests:
 - SDPG ↔ SDPT should fail
 - HWIL should only reach SEG (On-Prem)
+- Any host **outside** the DOMAIN pool ranges should **fail** to reach the Internet
 
 ## 5) Common failure modes
 - Asymmetric routing: ensure both sides have routes for remote prefixes and that Grey points to Outside via DREN.
-- NAT leaking into tunnel: ensure NAT exemptions exist (Azure Outside if you do WAN NAT).
+- Internet egress blocked: confirm az-out WAN firewall only allows the DOMAIN pools (NAT happens upstream on 10.255.255.0/24).
 - MTU/MSS: if you see intermittent TLS issues, clamp MSS on the DREN link.
 
 ## 6) Cleanup

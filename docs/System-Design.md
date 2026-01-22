@@ -11,6 +11,7 @@ The design goal is to:
 - Allow only the flows required for Appgate to function.
 - Explicitly prevent **Gateway-to-Gateway** east/west traffic (SDPG ↔ SDPT).
 - Enable cross-site access strictly for approved paths.
+- Restrict internet egress so **only the DOMAIN pool IP ranges** can reach the WAN.
 
 ## 2. Source of truth
 Network ranges are based on the attached spreadsheet `Work Lab Environment.xlsx` (single sheet).
@@ -18,7 +19,7 @@ Network ranges are based on the attached spreadsheet `Work Lab Environment.xlsx`
 ## 3. Network topology
 ### 3.1 Site roles
 - **External (Azure only)**: upstream/WAN segment for BYOD reachability and/or egress simulation.
-- **Outside**: DREN edge. Provides upstream default routing. In Azure, Outside can also provide NAT/egress toward External.
+- **Outside**: DREN edge. Provides upstream default routing. In Azure, Outside has three interfaces (**WAN**, **AZ-OUT** to Grey, and **DREN**) and can provide NAT/egress toward External.
 - **Grey**: distribution router for site internal segments (SDPC/SDPG/SDPT/AVD) and the policy enforcement point for intra-site and inter-site traffic.
 - **Inside / Developer**: downstream routers that host protected subnets.
 - **Sandbox**: downstream router hosting `SEG` and optional `HWIL` (On-Prem only). Enforces **HWIL → SEG only**.
@@ -123,6 +124,12 @@ Outside routers exchange routes over the DREN interconnect.
 - RDP: TCP 3389 (optional UDP 3389)
 - SMB: TCP 445
 - DB: TCP 1433, 1521, 3306, 5432, 27017
+
+### 7.4 Internet egress policy
+- Only the **DOMAIN pool** ranges are allowed to egress to the WAN:
+  - Azure: `10.1.0.21-10.1.0.29`
+  - On-Prem: `20.1.0.21-20.1.0.29`
+- **az-out** enforces this restriction with a WAN firewall policy; NAT occurs upstream on the `10.255.255.0/24` network.
 
 ### 7.3 Policy enforcement points
 - **Grey routers** enforce all inter-zone and inter-site policy (zone firewall).

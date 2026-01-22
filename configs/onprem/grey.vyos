@@ -32,11 +32,11 @@ set protocols static route '20.3.0.0/24' next-hop '20.0.0.4'
 set protocols static route '20.3.1.0/24' next-hop '20.0.0.4'
 
 # Firewall zones
-set firewall zone DREN member interface 'eth0'
-set firewall zone SDPC member interface 'eth1'
-set firewall zone SDPG member interface 'eth2'
-set firewall zone SDPT member interface 'eth3'
-set firewall zone AVD member interface 'eth4'
+set firewall zone DREN interface 'eth0'
+set firewall zone SDPC interface 'eth1'
+set firewall zone SDPG interface 'eth2'
+set firewall zone SDPT interface 'eth3'
+set firewall zone AVD interface 'eth4'
 
 # Network groups
 set firewall group network-group LOCAL_GW network '20.0.1.0/24'
@@ -91,46 +91,28 @@ set firewall ipv4 name SDPC-TO-GW rule 30 destination group network-group 'LOCAL
 set firewall ipv4 name SDPC-TO-GW rule 30 destination port '444'
 
 # SDPC -> remote gateways over DREN
-set firewall ipv4 name SDPC-TO-DREN-GW default-action 'drop'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 10 action 'accept'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 10 state established
-set firewall ipv4 name SDPC-TO-DREN-GW rule 10 state related
+set firewall ipv4 name DOMAIN-POOL-TO-DREN default-action 'drop'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 10 action 'accept'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 10 state established
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 10 state related
 
-set firewall ipv4 name SDPC-TO-DREN-GW rule 15 action 'accept'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 15 state new
-set firewall ipv4 name SDPC-TO-DREN-GW rule 15 protocol 'udp'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 15 source group address-group 'INTERNET_POOL_DOMAIN'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 15 destination port '53'
-
-set firewall ipv4 name SDPC-TO-DREN-GW rule 16 action 'accept'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 16 state new
-set firewall ipv4 name SDPC-TO-DREN-GW rule 16 protocol 'tcp'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 16 source group address-group 'INTERNET_POOL_DOMAIN'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 16 destination port '80'
-
-set firewall ipv4 name SDPC-TO-DREN-GW rule 17 action 'accept'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 17 state new
-set firewall ipv4 name SDPC-TO-DREN-GW rule 17 protocol 'tcp'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 17 source group address-group 'INTERNET_POOL_DOMAIN'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 17 destination port '443'
-
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 15 action 'accept'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 15 state new
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 15 source group address-group 'INTERNET_POOL_DOMAIN'
 set firewall group network-group EXTERNAL_UPLINK network '10.255.255.0/24'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 18 action 'accept'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 18 state new
-set firewall ipv4 name SDPC-TO-DREN-GW rule 18 source group address-group 'INTERNET_POOL_DOMAIN'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 18 destination group network-group 'EXTERNAL_UPLINK'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 15 destination group network-group 'EXTERNAL_UPLINK'
 
-set firewall ipv4 name SDPC-TO-DREN-GW rule 20 action 'accept'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 20 state new
-set firewall ipv4 name SDPC-TO-DREN-GW rule 20 protocol 'tcp'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 20 destination group network-group 'REMOTE_GW'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 20 destination port '443'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 20 action 'accept'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 20 state new
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 20 protocol 'tcp'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 20 destination group network-group 'REMOTE_GW'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 20 destination port '443'
 
-set firewall ipv4 name SDPC-TO-DREN-GW rule 30 action 'accept'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 30 state new
-set firewall ipv4 name SDPC-TO-DREN-GW rule 30 protocol 'tcp'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 30 destination group network-group 'REMOTE_GW'
-set firewall ipv4 name SDPC-TO-DREN-GW rule 30 destination port '444'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 30 action 'accept'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 30 state new
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 30 protocol 'tcp'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 30 destination group network-group 'REMOTE_GW'
+set firewall ipv4 name DOMAIN-POOL-TO-DREN rule 30 destination port '444'
 
 # AVD -> Gateways (client)
 set firewall ipv4 name AVD-TO-GW default-action 'drop'
@@ -219,7 +201,7 @@ set firewall ipv4 name GW-TO-REMOTE-DOWN rule 30 destination group port-group 'P
 # Bind policies
 set firewall zone SDPG from SDPC firewall name 'SDPC-TO-GW'
 set firewall zone SDPT from SDPC firewall name 'SDPC-TO-GW'
-set firewall zone DREN from SDPC firewall name 'SDPC-TO-DREN-GW'
+set firewall zone DREN from SDPC firewall name 'DOMAIN-POOL-TO-DREN'
 
 set firewall zone SDPG from AVD firewall name 'AVD-TO-GW'
 set firewall zone SDPT from AVD firewall name 'AVD-TO-GW'

@@ -20,8 +20,8 @@ set firewall ipv4 name SEG-TO-SDPC rule 20 action 'accept'
 set firewall ipv4 name SEG-TO-SDPC rule 20 state new
 set firewall ipv4 name SEG-TO-SDPC rule 20 destination address '10.0.0.1'
 
-set firewall zone SEG member interface 'eth1'
-set firewall zone SDPC member interface 'eth0'
+set firewall zone SEG interface 'eth1'
+set firewall zone SDPC interface 'eth0'
 set firewall zone SDPC from SEG firewall name 'SEG-TO-SDPC'
 
 commit

@@ -36,9 +36,9 @@ set firewall ipv4 name HWIL-TO-SEG rule 30 action 'accept'
 set firewall ipv4 name HWIL-TO-SEG rule 30 state new
 set firewall ipv4 name HWIL-TO-SEG rule 30 destination address '20.3.1.1'
 
-set firewall zone SEG member interface 'eth1'
-set firewall zone SDPC member interface 'eth0'
-set firewall zone HWIL member interface 'eth2'
+set firewall zone SEG interface 'eth1'
+set firewall zone SDPC interface 'eth0'
+set firewall zone HWIL interface 'eth2'
 set firewall zone SDPC from SEG firewall name 'SEG-TO-SDPC'
 set firewall zone SEG from HWIL firewall name 'HWIL-TO-SEG'
 
