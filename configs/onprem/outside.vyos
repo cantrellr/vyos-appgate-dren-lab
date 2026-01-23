@@ -1,22 +1,46 @@
 configure
 set system host-name 'onp-out'
 
-# On-Prem Outside
-set interfaces ethernet eth0 description 'ONP-OUT'
-set interfaces ethernet eth0 address '222.222.20.1/24'
+# Interfaces
+set interfaces ethernet eth0 description 'OUT'
+set interfaces ethernet eth0 address '202.0.0.1/24'
 
-# DREN (to az-out)
 set interfaces ethernet eth1 description 'DREN'
-set interfaces ethernet eth1 address '222.222.1.2/24'
+set interfaces ethernet eth1 address '100.255.0.2/24'
 
-# Route local site internal via Grey
-set protocols static route '20.0.0.0/8' next-hop '222.222.20.2'
+set interfaces ethernet eth2 description 'EXT'
+set interfaces ethernet eth2 address '202.254.0.2/24'
 
-# Route Azure internal via Azure Outside
-set protocols static route '10.0.0.0/8' next-hop '222.222.1.1'
+# Firewall: allow non-DREN; restrict DREN to limited ports
+set firewall ipv4 name ALLOW-ALL default-action 'accept'
 
-# Default route to Azure Outside (egress via az-ext)
-set protocols static route '0.0.0.0/0' next-hop '222.222.1.1'
+set firewall ipv4 name DREN-RESTRICT default-action 'drop'
+set firewall ipv4 name DREN-RESTRICT rule 10 action 'accept'
+set firewall ipv4 name DREN-RESTRICT rule 10 protocol 'icmp'
+set firewall ipv4 name DREN-RESTRICT rule 20 action 'accept'
+set firewall ipv4 name DREN-RESTRICT rule 20 protocol 'tcp'
+set firewall ipv4 name DREN-RESTRICT rule 20 destination port '443'
+set firewall ipv4 name DREN-RESTRICT rule 30 action 'accept'
+set firewall ipv4 name DREN-RESTRICT rule 30 protocol 'udp'
+set firewall ipv4 name DREN-RESTRICT rule 30 destination port '443'
+set firewall ipv4 name DREN-RESTRICT rule 40 action 'accept'
+set firewall ipv4 name DREN-RESTRICT rule 40 protocol 'udp'
+set firewall ipv4 name DREN-RESTRICT rule 40 destination port '53'
+
+set firewall zone OUT interface 'eth0'
+set firewall zone DREN interface 'eth1'
+set firewall zone EXT interface 'eth2'
+
+set firewall zone OUT from EXT firewall name 'ALLOW-ALL'
+set firewall zone EXT from OUT firewall name 'ALLOW-ALL'
+
+set firewall zone OUT from DREN firewall name 'DREN-RESTRICT'
+set firewall zone EXT from DREN firewall name 'DREN-RESTRICT'
+set firewall zone DREN from OUT firewall name 'DREN-RESTRICT'
+set firewall zone DREN from EXT firewall name 'DREN-RESTRICT'
+
+# Routing
+set protocols static route '0.0.0.0/0' next-hop '202.254.0.1'
 
 commit
 save

@@ -2,8 +2,8 @@
 
 ## 1) Before you touch anything
 - Confirm Hyper-V NIC mapping (MACs) and set `hw-id` in each config.
-- Confirm the DREN addressing between Outside routers.
-- Decide whether On-Prem External/WAN exists (optional).
+- Confirm the DREN addressing between Outside routers (100.255.0.0/24, Azure .1 / On-Prem .2).
+- Decide whether On-Prem External (202.254.0.0/24) is used; it is optional.
 
 ## 1.1) One-command Hyper-V build
 Prerequisites:
@@ -54,22 +54,23 @@ show firewall ipv4 name <RULESET>
 ```
 
 ## 4) Traffic tests (must-pass)
-From AZ SDPC subnet (10.0.0.0/24):
-- Reach AZ SDPG (10.0.1.0/24) and AZ SDPT (10.0.2.0/24) on TCP 443/444
-- Reach ONP SDPG (20.0.1.0/24) and ONP SDPT (20.0.2.0/24) on TCP 443/444
+Site-local (Azure):
+- From AZ SDPC (201.0.1.0/24): reach AZ SDPG (201.0.2.0/24) and AZ SDPT (201.0.3.0/24) on TCP 443/444.
+- From AZ SDPG/SDPT: reach AZ protected subnets (201.1.0.0/24, 201.1.1.0/24, 201.1.2.0/24, 201.1.3.0/24, 201.1.4.0/24) on approved ports only.
+- From AZ AVD (201.0.4.0/24): reach local gateways on TCP 443 / UDP 443 / UDP 53 and AZ SDPC on TCP 443 (optionally UDP 443/53).
 
-From AZ SDPG/SDPT:
-- Reach AZ protected subnets (10.1.0.0/24, 10.1.1.0/24, 10.2.0.0/24, 10.2.1.0/24, 10.3.0.0/24) on protected ports only
-- Reach ONP protected subnets (20.1.0.0/24, 20.1.1.0/24, 20.2.0.0/24, 20.2.1.0/24, 20.3.0.0/24) on protected ports only
+Site-local (On-Prem):
+- From ONP SDPC (202.0.1.0/24): reach ONP SDPG (202.0.2.0/24) and ONP SDPT (202.0.3.0/24) on TCP 443/444.
+- From ONP SDPG/SDPT: reach ONP protected subnets (202.1.0.0/24, 202.1.1.0/24, 202.1.2.0/24, 202.1.3.0/24, 202.1.4.0/24, 202.1.5.0/24 for HWIL) on approved ports only.
+- From ONP AVD (202.0.4.0/24): reach local gateways on TCP 443 / UDP 443 / UDP 53 and ONP SDPC on TCP 443 (optionally UDP 443/53).
 
-From AVD subnet:
-- Reach local gateways on TCP 443, UDP 443, UDP 53
-- Reach SDPC (Controllers) on TCP 443 (and optionally UDP 443/53 if enabled)
+Cross-site / DREN constraints:
+- Azure ↔ On-Prem prefixes should be unreachable (no inter-site routes).
+- DREN interfaces should only pass ICMP, TCP 443, UDP 443, UDP 53.
 
 Negative tests:
-- SDPG ↔ SDPT should fail
-- HWIL should only reach SEG (On-Prem)
-- Any host **outside** the DOMAIN pool ranges should **fail** to reach the Internet
+- SDPG ↔ SDPT should fail (both sites).
+- HWIL should only reach SEG (On-Prem).
 
 ## 5) Common failure modes
 - Asymmetric routing: ensure both sides have routes for remote prefixes and that Grey points to Outside via DREN.

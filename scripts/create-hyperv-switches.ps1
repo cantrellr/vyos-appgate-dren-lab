@@ -18,6 +18,7 @@ $internalSwitches = @(
     'az-dev',
     'az-devsvc',
     'az-seg',
+    'onp-out',
     'onp-dren',
     'onp-sdpc',
     'onp-sdpg',
@@ -28,11 +29,13 @@ $internalSwitches = @(
     'onp-dev',
     'onp-devsvc',
     'onp-seg',
-    'onp-hwil'
+    'onp-hwil',
+    'onp-ext'
 )
 
 $externalSwitches = @(
-    @{ Name = 'az-wan'; Adapter = $AzureExternalAdapterName }
+    @{ Name = 'az-wan'; Adapter = $AzureExternalAdapterName },
+    @{ Name = 'onp-ext'; Adapter = $OnPremUnderlayAdapterName }
 )
 
 function Get-AdapterNames {
@@ -110,9 +113,12 @@ foreach ($name in $internalSwitches) {
 }
 
 foreach ($ext in $externalSwitches) {
-    if ($UseExternalAdapters) {
+    if ($UseExternalAdapters -and -not [string]::IsNullOrWhiteSpace($ext.Adapter)) {
         Ensure-SwitchExternal -Name $ext.Name -AdapterName $ext.Adapter
     } else {
+        if ($UseExternalAdapters -and [string]::IsNullOrWhiteSpace($ext.Adapter)) {
+            Write-Host "[WARN] No adapter provided for $($ext.Name); creating Private switch instead."
+        }
         Ensure-SwitchPrivate -Name $ext.Name
     }
 }

@@ -1,8 +1,7 @@
 configure
 set system host-name 'core-3vm'
 
-set vrf name AZ_CORE table '100'
-set vrf name ONP_CORE table '200'
+### VRF configuration removed per new plan (no VRFs).
 
 # AZ interfaces (AZ_CORE VRF)
 set interfaces ethernet eth0 description 'AZ-DREN'

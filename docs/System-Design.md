@@ -5,22 +5,23 @@ This lab implements a **two-site segmented network** (Azure + On-Prem) with a de
 - **SDPC** subnets host Appgate **Controllers**.
 - **SDPG** and **SDPT** subnets host Appgate **Gateways**.
 - **AVD** subnets host AVD clients where Appgate clients/agents run.
-- **Inside / Developer / Sandbox(SEG)** subnets host **protected resources**.
+- **Inside / Developer / Sandbox (SEG)** subnets host **protected resources**.
 
 The design goal is to:
-- Allow only the flows required for Appgate to function.
+- Keep all traffic **site-local** (Azure isolated from On-Prem) while retaining a DREN underlay for future use.
+- Allow only the flows required inside each site for Appgate to function.
 - Explicitly prevent **Gateway-to-Gateway** east/west traffic (SDPG ↔ SDPT).
-- Enable cross-site access strictly for approved paths.
-- Restrict internet egress so **only the DOMAIN pool IP ranges** can reach the WAN.
+- Restrict DREN to ICMP / TCP 443 / UDP 443 / UDP 53 only.
+- Run with **no NAT**, simplifying traceability.
 
 ## 2. Source of truth
-Network ranges are based on the attached spreadsheet `Work Lab Environment.xlsx` (single sheet).
+Network ranges are captured in `docs/addressing.csv` (single sheet, also mirrored in `docs/Network Description.txt`).
 
 ## 3. Network topology
 ### 3.1 Site roles
 - **External (Azure only)**: upstream/WAN segment for BYOD reachability and/or egress simulation.
-- **Outside**: DREN edge. Provides upstream default routing. In Azure, Outside has three interfaces (**WAN**, **AZ-OUT** to Grey, and **DREN**) and can provide NAT/egress toward External.
-- **Grey**: distribution router for site internal segments (SDPC/SDPG/SDPT/AVD) and the policy enforcement point for intra-site and inter-site traffic.
+- **Outside**: DREN edge. Provides upstream default routing. Azure Outside has WAN + DREN + OUT. On-Prem Outside has DREN + OUT + EXT.
+- **Grey**: distribution router for site internal segments (SDPC/SDPG/SDPT/AVD) and the policy enforcement point for intra-site traffic (cross-site is intentionally absent).
 - **Inside / Developer**: downstream routers that host protected subnets.
 - **Sandbox**: downstream router hosting `SEG` and optional `HWIL` (On-Prem only). Enforces **HWIL → SEG only**.
 
@@ -28,56 +29,52 @@ Network ranges are based on the attached spreadsheet `Work Lab Environment.xlsx`
 See:
 - `diagrams/topology.mmd`
 - `diagrams/appgate-flows.mmd`
+- `diagrams/routing-topology.mmd`
 
 ## 4. Addressing plan
 ### 4.1 Azure (PROTON)
 | Zone | Subnet | Gateway |
 |---|---:|---:|
-| WAN (External) | 223.223.1.0/24 | 223.223.1.1 |
-| AZ-EXT (Internet) | 10.255.255.0/24 | 10.255.255.1 |
-| DREN | 222.222.1.0/24 | 222.222.1.1 (Outside) |
-| AZ-OUT | 222.222.10.0/24 | 222.222.10.1 (Outside) |
-| SDPC | 10.0.0.0/24 | 10.0.0.1 (Grey) |
-| SDPG | 10.0.1.0/24 | 10.0.1.1 (Grey) |
-| SDPT | 10.0.2.0/24 | 10.0.2.1 (Grey) |
-| AVD | 10.0.3.0/24 | 10.0.3.1 (Grey) |
-| DOMAIN | 10.1.0.0/24 | 10.1.0.1 (Inside) |
-| DOMSVC | 10.1.1.0/24 | 10.1.1.1 (Inside) |
-| DEV | 10.2.0.0/24 | 10.2.0.1 (Developer) |
-| DEVSVC | 10.2.1.0/24 | 10.2.1.1 (Developer) |
-| SEG | 10.3.0.0/24 | 10.3.0.1 (Sandbox) |
+| WAN | 201.255.0.0/24 | 201.255.0.1 |
+| EXT | 201.254.0.0/24 | 201.254.0.1 |
+| DREN | 100.255.0.0/24 | 100.255.0.1 (Outside) |
+| OUT | 201.0.0.0/24 | 201.0.0.1 (Outside) |
+| SDPC | 201.0.1.0/24 | 201.0.1.1 (Grey) |
+| SDPG | 201.0.2.0/24 | 201.0.2.1 (Grey) |
+| SDPT | 201.0.3.0/24 | 201.0.3.1 (Grey) |
+| AVD | 201.0.4.0/24 | 201.0.4.1 (Grey) |
+| DOMAIN | 201.1.0.0/24 | 201.1.0.1 (Inside) |
+| DOMSVC | 201.1.1.0/24 | 201.1.1.1 (Inside) |
+| DEV | 201.1.2.0/24 | 201.1.2.1 (Developer) |
+| DEVSVC | 201.1.3.0/24 | 201.1.3.1 (Developer) |
+| SEG | 201.1.4.0/24 | 201.1.4.1 (Sandbox) |
 
 ### 4.2 On-Prem (RCDN-U)
 | Zone | Subnet | Gateway |
 |---|---:|---:|
-| WAN (External, optional) | 223.223.2.0/24 | 223.223.2.1 |
-| DREN | 222.222.1.0/24 | 222.222.1.2 (Outside) |
-| ONP-OUT | 222.222.20.0/24 | 222.222.20.1 (Outside) |
-| SDPC | 20.0.0.0/24 | 20.0.0.1 (Grey) |
-| SDPG | 20.0.1.0/24 | 20.0.1.1 (Grey) |
-| SDPT | 20.0.2.0/24 | 20.0.2.1 (Grey) |
-| AVD | 20.0.3.0/24 | 20.0.3.1 (Grey) |
-| DOMAIN | 20.1.0.0/24 | 20.1.0.1 (Inside) |
-| DOMSVC | 20.1.1.0/24 | 20.1.1.1 (Inside) |
-| DEV | 20.2.0.0/24 | 20.2.0.1 (Developer) |
-| DEVSVC | 20.2.1.0/24 | 20.2.1.1 (Developer) |
-| SEG | 20.3.0.0/24 | 20.3.0.1 (Sandbox) |
-| HWIL | 20.3.1.0/24 | 20.3.1.1 (Sandbox) |
+| WAN | N/A | N/A |
+| EXT | 202.254.0.0/24 | 202.254.0.1 (External) |
+| DREN | 100.255.0.0/24 | 100.255.0.2 (Outside) |
+| OUT | 202.0.0.0/24 | 202.0.0.1 (Outside) |
+| SDPC | 202.0.1.0/24 | 202.0.1.1 (Grey) |
+| SDPG | 202.0.2.0/24 | 202.0.2.1 (Grey) |
+| SDPT | 202.0.3.0/24 | 202.0.3.1 (Grey) |
+| AVD | 202.0.4.0/24 | 202.0.4.1 (Grey) |
+| DOMAIN | 202.1.0.0/24 | 202.1.0.1 (Inside) |
+| DOMSVC | 202.1.1.0/24 | 202.1.1.1 (Inside) |
+| DEV | 202.1.2.0/24 | 202.1.2.1 (Developer) |
+| DEVSVC | 202.1.3.0/24 | 202.1.3.1 (Developer) |
+| SEG | 202.1.4.0/24 | 202.1.4.1 (Sandbox) |
+| HWIL | 202.1.5.0/24 | 202.1.5.1 (Sandbox) |
 
 ## 5. Key design assumptions (must validate)
 ### 5.1 Router-to-router transit IPs (not in the spreadsheet)
-The spreadsheet does not define the uplink IPs from downstream routers into the SDPC subnet. This design allocates:
-- Azure SDPC uplinks:
-  - Inside uplink: `10.0.0.2/24`
-  - Developer uplink: `10.0.0.3/24`
-  - Sandbox uplink: `10.0.0.4/24`
-- On-Prem SDPC uplinks:
-  - Inside uplink: `20.0.0.2/24`
-  - Developer uplink: `20.0.0.3/24`
-  - Sandbox uplink: `20.0.0.4/24`
+Downstream uplinks into SDPC are allocated as:
+- Azure SDPC uplinks: `201.0.1.2/24` (Inside), `201.0.1.3/24` (Developer), `201.0.1.4/24` (Sandbox)
+- On-Prem SDPC uplinks: `202.0.1.2/24` (Inside), `202.0.1.3/24` (Developer), `202.0.1.4/24` (Sandbox)
 
 ### 5.2 Cross-site transit
-Outside routers exchange routes over the DREN interconnect.
+Cross-site routing is **deliberately absent**. DREN exists only for restricted testing (ICMP/443 TCP+UDP/53 UDP) and does not carry inter-site prefixes.
 
 ## 6. Routing architecture
 ### 6.1 Inside the site
@@ -85,24 +82,23 @@ Outside routers exchange routes over the DREN interconnect.
 - Inside/Developer/Sandbox default route points to Grey SDPC IP.
 
 ### 6.2 Cross-site
-- Grey forwards remote-site traffic to its local **Outside** via DREN.
-- Outside routers route remote-site prefixes over DREN.
+- No remote-site routes are installed. Azure and On-Prem are isolated by design. DREN remains for tightly constrained diagnostics only.
 
 ## 7. Security policy model
 ### 7.1 High-level traffic matrix
 **SDPG ↔ SDPT**: **DENY** (no requirement).
 
-**SDPC (Controllers)** needs access to Gateways (both sites):
+**SDPC (Controllers)** needs access to local Gateways:
 - SDPC → SDPG/SDPT: allow Appgate control plane ports.
 
-**AVD clients** need access to local gateways:
+**AVD clients** need access to local Gateways:
 - AVD → SDPG/SDPT: allow Appgate client tunnel ports.
 
 **AVD clients** also need access to Controllers (SDPC):
 - AVD → SDPC: allow Appgate client/control-plane ports used for enrollment/auth and policy updates.
 
-**Gateways** must proxy to protected resources (both sites):
-- SDPG/SDPT → Inside/Developer/Sandbox(SEG): allow least-privilege protected ports.
+**Gateways** must proxy to protected resources (local site only):
+- SDPG/SDPT → Inside/Developer/Sandbox (SEG): allow least-privilege protected ports.
 
 ### 7.2 Allowed port sets
 **Appgate client-to-gateway (baseline):**
@@ -126,10 +122,10 @@ Outside routers exchange routes over the DREN interconnect.
 - DB: TCP 1433, 1521, 3306, 5432, 27017
 
 ### 7.4 Internet egress policy
-- Only the **DOMAIN pool** ranges are allowed to egress to the WAN:
-  - Azure: `10.1.0.21-10.1.0.29`
-  - On-Prem: `20.1.0.21-20.1.0.29`
-- **az-out** enforces this restriction with a WAN firewall policy; NAT occurs upstream on the `10.255.255.0/24` network.
+- Only the **DOMAIN pool** ranges are intended to egress to the WAN (adjust pools as needed in DHCP/AAA):
+  - Azure: `201.1.0.21-201.1.0.29`
+  - On-Prem: `202.1.0.21-202.1.0.29`
+- No NAT is configured in this lab; egress shaping (if used) must be done upstream of the lab.
 
 ### 7.3 Policy enforcement points
 - **Grey routers** enforce all inter-zone and inter-site policy (zone firewall).

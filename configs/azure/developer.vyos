@@ -2,15 +2,15 @@ configure
 set system host-name 'az-dev'
 
 set interfaces ethernet eth0 description 'UPLINK-SDPC'
-set interfaces ethernet eth0 address '10.0.0.3/24'
+set interfaces ethernet eth0 address '201.0.1.3/24'
 
 set interfaces ethernet eth1 description 'DEV'
-set interfaces ethernet eth1 address '10.2.0.1/24'
+set interfaces ethernet eth1 address '201.1.2.1/24'
 
 set interfaces ethernet eth2 description 'DEVSVC'
-set interfaces ethernet eth2 address '10.2.1.1/24'
+set interfaces ethernet eth2 address '201.1.3.1/24'
 
-set protocols static route '0.0.0.0/0' next-hop '10.0.0.1'
+set protocols static route '0.0.0.0/0' next-hop '201.0.1.1'
 commit
 save
 exit

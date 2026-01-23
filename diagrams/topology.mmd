@@ -1,11 +1,11 @@
 flowchart LR
-  subgraph AZ[Azure PROTON]
-    EXT[External Router\nWAN 223.223.1.1/24\nAZ-EXT 10.255.255.2/24]
-    OUT[Outside Router\nWAN 223.223.1.2/24\nAZ-OUT 222.222.10.1/24\nDREN 222.222.1.1/24]
-    GREY[Grey Router\nAZ-OUT 222.222.10.2/24\nSDPC 10.0.0.1/24\nSDPG 10.0.1.1/24\nSDPT 10.0.2.1/24\nAVD  10.0.3.1/24]
-    INS[Inside Router\nUplink 10.0.0.2/24\nDOMAIN 10.1.0.1/24\nDOMSVC 10.1.1.1/24]
-    DEV[Developer Router\nUplink 10.0.0.3/24\nDEV 10.2.0.1/24\nDEVSVC 10.2.1.1/24]
-    SBX[Sandbox Router\nUplink 10.0.0.4/24\nSEG 10.3.0.1/24]
+  subgraph AZ[Azure]
+    EXT[External Router\nEXT 201.254.0.2/24\nWAN 201.255.0.2/24]
+    OUT[Outside Router\nWAN 201.255.0.3/24\nOUT 201.0.0.1/24\nDREN 100.255.0.1/24]
+    GREY[Grey Router\nOUT 201.0.0.2/24\nSDPC 201.0.1.1/24\nSDPG 201.0.2.1/24\nSDPT 201.0.3.1/24\nAVD 201.0.4.1/24]
+    INS[Inside Router\nUplink 201.0.1.2/24\nDOMAIN 201.1.0.1/24\nDOMSVC 201.1.1.1/24]
+    DEV[Developer Router\nUplink 201.0.1.3/24\nDEV 201.1.2.1/24\nDEVSVC 201.1.3.1/24]
+    SBX[Sandbox Router\nUplink 201.0.1.4/24\nSEG 201.1.4.1/24]
 
     EXT --- OUT
     OUT --- GREY
@@ -14,12 +14,12 @@ flowchart LR
     GREY --- SBX
   end
 
-  subgraph ONP[On-Prem RCDN-U]
-    OUT2[Outside Router\nONP-OUT 222.222.20.1/24\nDREN 222.222.1.2/24]
-    GREY2[Grey Router\nONP-OUT 222.222.20.2/24\nSDPC 20.0.0.1/24\nSDPG 20.0.1.1/24\nSDPT 20.0.2.1/24\nAVD  20.0.3.1/24]
-    INS2[Inside Router\nUplink 20.0.0.2/24\nDOMAIN 20.1.0.1/24\nDOMSVC 20.1.1.1/24]
-    DEV2[Developer Router\nUplink 20.0.0.3/24\nDEV 20.2.0.1/24\nDEVSVC 20.2.1.1/24]
-    SBX2[Sandbox Router\nUplink 20.0.0.4/24\nSEG 20.3.0.1/24\nHWIL 20.3.1.1/24]
+  subgraph ONP[On-Prem]
+    OUT2[Outside Router\nOUT 202.0.0.1/24\nDREN 100.255.0.2/24\nEXT 202.254.0.2/24]
+    GREY2[Grey Router\nOUT 202.0.0.2/24\nSDPC 202.0.1.1/24\nSDPG 202.0.2.1/24\nSDPT 202.0.3.1/24\nAVD 202.0.4.1/24]
+    INS2[Inside Router\nUplink 202.0.1.2/24\nDOMAIN 202.1.0.1/24\nDOMSVC 202.1.1.1/24]
+    DEV2[Developer Router\nUplink 202.0.1.3/24\nDEV 202.1.2.1/24\nDEVSVC 202.1.3.1/24]
+    SBX2[Sandbox Router\nUplink 202.0.1.4/24\nSEG 202.1.4.1/24\nHWIL 202.1.5.1/24]
 
     OUT2 --- GREY2
     GREY2 --- INS2
@@ -27,4 +27,4 @@ flowchart LR
     GREY2 --- SBX2
   end
 
-  OUT === DREN === OUT2
+  OUT ===|"DREN 100.255.0.0/24 (restricted)"| OUT2

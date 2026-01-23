@@ -133,8 +133,8 @@ $vmDefinitions = @(
     @{ Name = 'vyos-az-inside'; Config = 'configs\azure\inside.vyos'; Switches = @('az-sdpc','az-domain','az-domsvc') },
     @{ Name = 'vyos-az-dev'; Config = 'configs\azure\developer.vyos'; Switches = @('az-sdpc','az-dev','az-devsvc') },
     @{ Name = 'vyos-az-sandbox'; Config = 'configs\azure\sandbox.vyos'; Switches = @('az-sdpc','az-seg') },
-    @{ Name = 'vyos-onp-out'; Config = 'configs\onprem\outside.vyos'; Switches = @('onp-dren','az-dren') },
-    @{ Name = 'vyos-onp-grey'; Config = 'configs\onprem\grey.vyos'; Switches = @('onp-dren','onp-sdpc','onp-sdpg','onp-sdpt','onp-avd') },
+    @{ Name = 'vyos-onp-out'; Config = 'configs\onprem\outside.vyos'; Switches = @('onp-out','az-dren','onp-ext') },
+    @{ Name = 'vyos-onp-grey'; Config = 'configs\onprem\grey.vyos'; Switches = @('onp-out','onp-sdpc','onp-sdpg','onp-sdpt','onp-avd') },
     @{ Name = 'vyos-onp-inside'; Config = 'configs\onprem\inside.vyos'; Switches = @('onp-sdpc','onp-domain','onp-domsvc') },
     @{ Name = 'vyos-onp-dev'; Config = 'configs\onprem\developer.vyos'; Switches = @('onp-sdpc','onp-dev','onp-devsvc') },
     @{ Name = 'vyos-onp-sandbox'; Config = 'configs\onprem\sandbox.vyos'; Switches = @('onp-sdpc','onp-seg','onp-hwil') }

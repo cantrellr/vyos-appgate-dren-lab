@@ -1,48 +1,46 @@
 configure
 set system host-name 'az-out'
 
-# To External (WAN segment)
-set interfaces ethernet eth0 description 'WAN-SEGMENT'
-set interfaces ethernet eth0 address '223.223.1.2/24'
+# Interfaces
+set interfaces ethernet eth0 description 'WAN'
+set interfaces ethernet eth0 address '201.255.0.3/24'
 
-# To DREN (local)
 set interfaces ethernet eth1 description 'DREN'
-set interfaces ethernet eth1 address '222.222.1.1/24'
+set interfaces ethernet eth1 address '100.255.0.1/24'
 
-# To Grey (AZ-OUT)
-set interfaces ethernet eth2 description 'AZ-OUT'
-set interfaces ethernet eth2 address '222.222.10.1/24'
+set interfaces ethernet eth2 description 'OUT'
+set interfaces ethernet eth2 address '201.0.0.1/24'
 
-# Egress control: only domain pools can reach WAN
-set firewall group address-group INTERNET_POOL_DOMAIN address '10.1.0.21-10.1.0.29'
-set firewall group address-group INTERNET_POOL_DOMAIN address '20.1.0.21-20.1.0.29'
+# Firewall: allow non-DREN; restrict DREN to limited ports
+set firewall ipv4 name ALLOW-ALL default-action 'accept'
 
-set firewall ipv4 name WAN-OUT default-action 'drop'
-set firewall ipv4 name WAN-OUT rule 10 action 'accept'
-set firewall ipv4 name WAN-OUT rule 10 state established
-set firewall ipv4 name WAN-OUT rule 10 state related
-set firewall ipv4 name WAN-OUT rule 20 action 'accept'
-set firewall ipv4 name WAN-OUT rule 20 state new
-set firewall ipv4 name WAN-OUT rule 20 source group address-group 'INTERNET_POOL_DOMAIN'
+set firewall ipv4 name DREN-RESTRICT default-action 'drop'
+set firewall ipv4 name DREN-RESTRICT rule 10 action 'accept'
+set firewall ipv4 name DREN-RESTRICT rule 10 protocol 'icmp'
+set firewall ipv4 name DREN-RESTRICT rule 20 action 'accept'
+set firewall ipv4 name DREN-RESTRICT rule 20 protocol 'tcp'
+set firewall ipv4 name DREN-RESTRICT rule 20 destination port '443'
+set firewall ipv4 name DREN-RESTRICT rule 30 action 'accept'
+set firewall ipv4 name DREN-RESTRICT rule 30 protocol 'udp'
+set firewall ipv4 name DREN-RESTRICT rule 30 destination port '443'
+set firewall ipv4 name DREN-RESTRICT rule 40 action 'accept'
+set firewall ipv4 name DREN-RESTRICT rule 40 protocol 'udp'
+set firewall ipv4 name DREN-RESTRICT rule 40 destination port '53'
 
 set firewall zone WAN interface 'eth0'
 set firewall zone DREN interface 'eth1'
-set firewall zone AZOUT interface 'eth2'
-set firewall zone WAN from DREN firewall name 'WAN-OUT'
-set firewall zone WAN from AZOUT firewall name 'WAN-OUT'
+set firewall zone OUT interface 'eth2'
 
-# Default route to External
-set protocols static route '0.0.0.0/0' next-hop '223.223.1.1'
+set firewall zone WAN from OUT firewall name 'ALLOW-ALL'
+set firewall zone OUT from WAN firewall name 'ALLOW-ALL'
 
-# NATOUT subnet via az-ext (avoid 10.0.0.0/8 loop)
-set protocols static route '10.255.255.0/24' next-hop '223.223.1.1'
+set firewall zone WAN from DREN firewall name 'DREN-RESTRICT'
+set firewall zone OUT from DREN firewall name 'DREN-RESTRICT'
+set firewall zone DREN from WAN firewall name 'DREN-RESTRICT'
+set firewall zone DREN from OUT firewall name 'DREN-RESTRICT'
 
-# Local site internal via Grey
-set protocols static route '10.0.0.0/8' next-hop '222.222.10.2'
-
-# On-prem internal via On-Prem Outside
-set protocols static route '20.0.0.0/8' next-hop '222.222.1.2'
-
+# Routing
+set protocols static route '0.0.0.0/0' next-hop '201.255.0.1'
 
 commit
 save

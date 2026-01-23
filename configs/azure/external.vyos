@@ -1,21 +1,15 @@
 configure
 set system host-name 'az-ext'
 
-# Internet uplink (Default Switch)
-set interfaces ethernet eth0 description 'AZ-EXT'
-set interfaces ethernet eth0 address '10.255.255.2/24'
+# External and WAN uplinks
+set interfaces ethernet eth0 description 'EXT'
+set interfaces ethernet eth0 address '201.254.0.2/24'
 
-# WAN segment
-set interfaces ethernet eth1 description 'WAN-SEGMENT'
-set interfaces ethernet eth1 address '223.223.1.1/24'
+set interfaces ethernet eth1 description 'WAN'
+set interfaces ethernet eth1 address '201.255.0.2/24'
 
-# Route Azure internal + DREN back to Outside on the WAN segment
-set protocols static route '222.222.10.0/24' next-hop '223.223.1.2'
-set protocols static route '10.0.0.0/8' next-hop '223.223.1.2'
-set protocols static route '20.0.0.0/8' next-hop '223.223.1.2'
-
-# Default route via internet uplink
-set protocols static route '0.0.0.0/0' next-hop '10.255.255.1'
+# Default route to Internet
+set protocols static route '0.0.0.0/0' next-hop '201.255.0.1'
 
 commit
 save

@@ -2,15 +2,15 @@ configure
 set system host-name 'onp-sandbox'
 
 set interfaces ethernet eth0 description 'UPLINK-SDPC'
-set interfaces ethernet eth0 address '20.0.0.4/24'
+set interfaces ethernet eth0 address '202.0.1.4/24'
 
 set interfaces ethernet eth1 description 'SEG'
-set interfaces ethernet eth1 address '20.3.0.1/24'
+set interfaces ethernet eth1 address '202.1.4.1/24'
 
 set interfaces ethernet eth2 description 'HWIL'
-set interfaces ethernet eth2 address '20.3.1.1/24'
+set interfaces ethernet eth2 address '202.1.5.1/24'
 
-set protocols static route '0.0.0.0/0' next-hop '20.0.0.1'
+set protocols static route '0.0.0.0/0' next-hop '202.0.1.1'
 
 # SEG egress hardening (optional): allow SEG -> Grey only
 set firewall ipv4 name SEG-TO-SDPC default-action 'drop'
@@ -19,10 +19,10 @@ set firewall ipv4 name SEG-TO-SDPC rule 10 state established
 set firewall ipv4 name SEG-TO-SDPC rule 10 state related
 set firewall ipv4 name SEG-TO-SDPC rule 20 action 'accept'
 set firewall ipv4 name SEG-TO-SDPC rule 20 state new
-set firewall ipv4 name SEG-TO-SDPC rule 20 destination address '20.0.0.1'
+set firewall ipv4 name SEG-TO-SDPC rule 20 destination address '202.0.1.1'
 set firewall ipv4 name SEG-TO-SDPC rule 30 action 'accept'
 set firewall ipv4 name SEG-TO-SDPC rule 30 state new
-set firewall ipv4 name SEG-TO-SDPC rule 30 destination address '20.3.0.1'
+set firewall ipv4 name SEG-TO-SDPC rule 30 destination address '202.1.4.1'
 
 # HWIL can ONLY reach SEG subnet + its gateway
 set firewall ipv4 name HWIL-TO-SEG default-action 'drop'
@@ -31,10 +31,10 @@ set firewall ipv4 name HWIL-TO-SEG rule 10 state established
 set firewall ipv4 name HWIL-TO-SEG rule 10 state related
 set firewall ipv4 name HWIL-TO-SEG rule 20 action 'accept'
 set firewall ipv4 name HWIL-TO-SEG rule 20 state new
-set firewall ipv4 name HWIL-TO-SEG rule 20 destination address '20.3.0.0/24'
+set firewall ipv4 name HWIL-TO-SEG rule 20 destination address '202.1.4.0/24'
 set firewall ipv4 name HWIL-TO-SEG rule 30 action 'accept'
 set firewall ipv4 name HWIL-TO-SEG rule 30 state new
-set firewall ipv4 name HWIL-TO-SEG rule 30 destination address '20.3.1.1'
+set firewall ipv4 name HWIL-TO-SEG rule 30 destination address '202.1.5.1'
 
 set firewall zone SEG interface 'eth1'
 set firewall zone SDPC interface 'eth0'
