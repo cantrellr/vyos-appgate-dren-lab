@@ -11,15 +11,6 @@ set interfaces ethernet eth1 address '201.1.0.1/24'
 set interfaces ethernet eth2 description 'DOMSVC'
 set interfaces ethernet eth2 address '201.1.1.1/24'
 
-set interfaces ethernet eth3 description 'DEV'
-set interfaces ethernet eth3 address '201.1.2.1/24'
-
-set interfaces ethernet eth4 description 'DEVSVC'
-set interfaces ethernet eth4 address '201.1.3.1/24'
-
-set interfaces ethernet eth5 description 'SEG'
-set interfaces ethernet eth5 address '201.1.4.1/24'
-
 set protocols static route '0.0.0.0/0' next-hop '201.0.1.1'
 commit
 save
