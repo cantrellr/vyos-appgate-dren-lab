@@ -377,6 +377,33 @@ set firewall zone ONP_SDPC from ONP_SDPT firewall name 'ONP-GW-TO-LOCAL-DOWN'
 set firewall zone ONP_DREN from ONP_SDPG firewall name 'ONP-GW-TO-REMOTE-DOWN'
 set firewall zone ONP_DREN from ONP_SDPT firewall name 'ONP-GW-TO-REMOTE-DOWN'
 
+# Restrict management services to MGMT only
+set firewall ipv4 name MGMT-DENY default-action 'accept'
+set firewall ipv4 name MGMT-DENY rule 10 action 'drop'
+set firewall ipv4 name MGMT-DENY rule 10 protocol 'tcp'
+set firewall ipv4 name MGMT-DENY rule 10 destination port '22'
+set firewall ipv4 name MGMT-DENY rule 20 action 'drop'
+set firewall ipv4 name MGMT-DENY rule 20 protocol 'tcp'
+set firewall ipv4 name MGMT-DENY rule 20 destination port '443,8443'
+
+# Apply the mgmt-deny filter only to the data-plane interfaces
+set interfaces ethernet eth1 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth2 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth3 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth4 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth5 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth6 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth7 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth8 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth9 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth10 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth11 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth12 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth13 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth14 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth15 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth16 firewall local name 'MGMT-DENY'
+set interfaces ethernet eth17 firewall local name 'MGMT-DENY'
 commit
 save
 exit

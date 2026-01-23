@@ -17,13 +17,6 @@ set interfaces ethernet eth3 address '201.0.0.1/24'
 # Firewall: allow non-DREN; restrict DREN to limited ports
 set firewall ipv4 name ALLOW-ALL default-action 'accept'
 
-set firewall ipv4 name LOCAL-DROP-MGMT default-action 'accept'
-set firewall ipv4 name LOCAL-DROP-MGMT rule 10 action 'drop'
-set firewall ipv4 name LOCAL-DROP-MGMT rule 10 protocol 'tcp'
-set firewall ipv4 name LOCAL-DROP-MGMT rule 10 destination port '22'
-set firewall ipv4 name LOCAL-DROP-MGMT rule 20 action 'drop'
-set firewall ipv4 name LOCAL-DROP-MGMT rule 20 protocol 'tcp'
-set firewall ipv4 name LOCAL-DROP-MGMT rule 20 destination port '443,8443'
 
 set firewall ipv4 name DREN-RESTRICT default-action 'drop'
 set firewall ipv4 name DREN-RESTRICT rule 10 action 'accept'
@@ -50,14 +43,30 @@ set firewall zone OUT from DREN firewall name 'DREN-RESTRICT'
 set firewall zone DREN from WAN firewall name 'DREN-RESTRICT'
 set firewall zone DREN from OUT firewall name 'DREN-RESTRICT'
 
-# Restrict management services to MGMT only
-set firewall interfaces ethernet eth1 local ipv4 name 'LOCAL-DROP-MGMT'
-set firewall interfaces ethernet eth2 local ipv4 name 'LOCAL-DROP-MGMT'
-set firewall interfaces ethernet eth3 local ipv4 name 'LOCAL-DROP-MGMT'
-
 # Routing
 set protocols static route '0.0.0.0/0' next-hop '201.254.0.2'
 
+# Restrict management services to MGMT only
+set firewall ipv4 name MGMT-DENY default-action 'accept'
+set firewall ipv4 name MGMT-DENY rule 10 action 'drop'
+set firewall ipv4 name MGMT-DENY rule 10 protocol 'tcp'
+set firewall ipv4 name MGMT-DENY rule 10 destination port '22'
+set firewall ipv4 name MGMT-DENY rule 20 action 'drop'
+set firewall ipv4 name MGMT-DENY rule 20 protocol 'tcp'
+set firewall ipv4 name MGMT-DENY rule 20 destination port '443,8443'
+
+# Mgmt restriction wiring (VyOS 1.4+): match inbound interface(s) and jump to MGMT-DENY
+set firewall group interface-group DATA-PLANE description 'Non-MGMT interfaces (blocked mgmt ports)'
+set firewall group interface-group DATA-PLANE interface 'eth1'
+set firewall group interface-group DATA-PLANE interface 'eth2'
+set firewall group interface-group DATA-PLANE interface 'eth3'
+set firewall ipv4 input filter default-action 'accept'
+set firewall ipv4 input filter rule 10 action 'jump'
+set firewall ipv4 input filter rule 10 inbound-interface group 'DATA-PLANE'
+set firewall ipv4 input filter rule 10 jump-target 'MGMT-DENY'
+
+# Apply the mgmt-deny filter only to the data-plane interfaces
 commit
 save
 exit
+
