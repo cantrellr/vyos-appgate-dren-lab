@@ -51,9 +51,9 @@ set firewall zone DREN from OUT firewall name 'DREN-RESTRICT'
 set firewall zone DREN from EXT firewall name 'DREN-RESTRICT'
 
 # Restrict management services to MGMT only
-set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
-set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
-set interfaces ethernet eth3 firewall local name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth1 local ipv4 name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth2 local ipv4 name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth3 local ipv4 name 'LOCAL-DROP-MGMT'
 
 # Routing
 set protocols static route '0.0.0.0/0' next-hop '202.254.0.1'

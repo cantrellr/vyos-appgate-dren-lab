@@ -70,11 +70,11 @@ set firewall zone AVD from SDPG firewall name 'ALLOW-ALL'
 set firewall zone AVD from SDPT firewall name 'ALLOW-ALL'
 
 # Restrict management services to MGMT only
-set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
-set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
-set interfaces ethernet eth3 firewall local name 'LOCAL-DROP-MGMT'
-set interfaces ethernet eth4 firewall local name 'LOCAL-DROP-MGMT'
-set interfaces ethernet eth5 firewall local name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth1 local ipv4 name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth2 local ipv4 name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth3 local ipv4 name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth4 local ipv4 name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth5 local ipv4 name 'LOCAL-DROP-MGMT'
 
 commit
 save

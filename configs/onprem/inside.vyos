@@ -24,9 +24,9 @@ set firewall ipv4 name LOCAL-DROP-MGMT rule 20 protocol 'tcp'
 set firewall ipv4 name LOCAL-DROP-MGMT rule 20 destination port '443,8443'
 
 # Restrict management services to MGMT only
-set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
-set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
-set interfaces ethernet eth3 firewall local name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth1 local ipv4 name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth2 local ipv4 name 'LOCAL-DROP-MGMT'
+set firewall interfaces ethernet eth3 local ipv4 name 'LOCAL-DROP-MGMT'
 commit
 save
 exit
