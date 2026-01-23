@@ -1,17 +1,21 @@
+%% eth0 = MGMT via Hyper-V Default Switch (DHCP). eth1+ = data-plane.
 flowchart LR
     classDef router fill:#1f78b4,stroke:#0b3558,color:#ffffff;
+    classDef mgmt fill:#555,stroke:#222,color:#fff;
+
+    MGMT["MGMT / Default Switch<br/>DHCP / eth0"]:::mgmt
 
     subgraph Azure
-        az_ext["az-ext"]:::router
-        az_out["az-out\nwan 201.255.0.3/24\nout 201.0.0.1/24\ndren 100.255.0.1/24"]:::router
-        az_grey["az-grey"]:::router
-        az_inside["az-inside\n(201.1.0.0/24, 201.1.1.0/24)"]:::router
-        az_dev["az-dev\n(201.1.2.0/24, 201.1.3.0/24)"]:::router
-        az_sandbox["az-sandbox\n(201.1.4.0/24)"]:::router
+        az_ext["az-ext<br/>eth1 ext 201.255.0.2/24<br/>eth2 wan 201.254.0.2/24"]:::router
+        az_out["az-out<br/>eth1 wan 201.254.0.3/24<br/>eth2 dren 100.255.0.1/24<br/>eth3 out 201.0.0.1/24"]:::router
+        az_grey["az-grey<br/>eth1 out 201.0.0.2/24<br/>eth2 sdpc 201.0.1.1/24<br/>eth3 sdpg 201.0.2.1/24<br/>eth4 sdpt 201.0.3.1/24<br/>eth5 avd 201.0.4.1/24"]:::router
+        az_inside["az-inside<br/>eth1 sdpc-uplink 201.0.1.2/24<br/>eth2 domain 201.1.0.1/24<br/>eth3 domsvc 201.1.1.1/24"]:::router
+        az_dev["az-dev<br/>eth1 sdpc-uplink 201.0.1.3/24<br/>eth2 dev 201.1.2.1/24<br/>eth3 devsvc 201.1.3.1/24"]:::router
+        az_sandbox["az-sandbox<br/>eth1 sdpc-uplink 201.0.1.4/24<br/>eth2 seg 201.1.4.1/24"]:::router
         internet[("Internet")]
 
-        az_ext <--> |"ext 201.254.0.0/24"| internet
-        az_ext <--> |"wan 201.255.0.0/24"| az_out
+        az_ext <--> |"ext 201.255.0.0/24"| internet
+        az_ext <--> |"wan 201.254.0.0/24"| az_out
         az_out <--> |"out 201.0.0.0/24"| az_grey
         az_grey <--> |"sdpc 201.0.1.0/24"| az_inside
         az_grey <--> |"sdpc 201.0.1.0/24"| az_dev
@@ -27,11 +31,11 @@ flowchart LR
     end
 
     subgraph OnPrem
-        onp_out["onp-out\nout 202.0.0.1/24\ndren 100.255.0.2/24\next 202.254.0.2/24"]:::router
-        onp_grey["onp-grey"]:::router
-        onp_inside["onp-inside\n(202.1.0.0/24, 202.1.1.0/24)"]:::router
-        onp_dev["onp-dev\n(202.1.2.0/24, 202.1.3.0/24)"]:::router
-        onp_sandbox["onp-sandbox\n(202.1.4.0/24, 202.1.5.0/24)"]:::router
+        onp_out["onp-out<br/>eth1 out 202.0.0.1/24<br/>eth2 dren 100.255.0.2/24<br/>eth3 ext 202.254.0.2/24"]:::router
+        onp_grey["onp-grey<br/>eth1 out 202.0.0.2/24<br/>eth2 sdpc 202.0.1.1/24<br/>eth3 sdpg 202.0.2.1/24<br/>eth4 sdpt 202.0.3.1/24<br/>eth5 avd 202.0.4.1/24"]:::router
+        onp_inside["onp-inside<br/>eth1 sdpc-uplink 202.0.1.2/24<br/>eth2 domain 202.1.0.1/24<br/>eth3 domsvc 202.1.1.1/24"]:::router
+        onp_dev["onp-dev<br/>eth1 sdpc-uplink 202.0.1.3/24<br/>eth2 dev 202.1.2.1/24<br/>eth3 devsvc 202.1.3.1/24"]:::router
+        onp_sandbox["onp-sandbox<br/>eth1 sdpc-uplink 202.0.1.4/24<br/>eth2 seg 202.1.4.1/24<br/>eth3 hwil 202.1.5.1/24"]:::router
 
         onp_grey <--> |"out 202.0.0.0/24"| onp_out
         onp_grey <--> |"sdpc 202.0.1.0/24"| onp_inside
@@ -48,4 +52,18 @@ flowchart LR
         onp_grey --- |"avd 202.0.4.0/24"| onp_avd["AVD segment"]
     end
 
+    %% DREN (restricted)
     onp_out ===|"dren 100.255.0.0/24 (restricted; no site routes)"| az_out
+
+    %% MGMT oob connections (eth0 DHCP)
+    MGMT -.- az_ext
+    MGMT -.- az_out
+    MGMT -.- az_grey
+    MGMT -.- az_inside
+    MGMT -.- az_dev
+    MGMT -.- az_sandbox
+    MGMT -.- onp_out
+    MGMT -.- onp_grey
+    MGMT -.- onp_inside
+    MGMT -.- onp_dev
+    MGMT -.- onp_sandbox

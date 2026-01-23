@@ -13,6 +13,7 @@ The design goal is to:
 - Explicitly prevent **Gateway-to-Gateway** east/west traffic (SDPG ↔ SDPT).
 - Restrict DREN to ICMP / TCP 443 / UDP 443 / UDP 53 only.
 - Run with **no NAT**, simplifying traceability.
+- Reserve `eth0` on every router for **management only** (DHCP via Hyper-V Default Switch) and bind management services to it; data-plane starts at `eth1`.
 
 ## 2. Source of truth
 Network ranges are captured in `docs/addressing.csv` (single sheet, also mirrored in `docs/Network Description.txt`).
@@ -26,46 +27,48 @@ Network ranges are captured in `docs/addressing.csv` (single sheet, also mirrore
 - **Sandbox**: downstream router hosting `SEG` and optional `HWIL` (On-Prem only). Enforces **HWIL → SEG only**.
 
 ### 3.2 Diagrams
-See:
+See (data-plane only; `eth0` mgmt not shown):
 - `diagrams/topology.mmd`
 - `diagrams/appgate-flows.mmd`
 - `diagrams/routing-topology.mmd`
 
 ## 4. Addressing plan
 ### 4.1 Azure (PROTON)
-| Zone | Subnet | Gateway |
-|---|---:|---:|
-| WAN | 201.255.0.0/24 | 201.255.0.1 |
-| EXT | 201.254.0.0/24 | 201.254.0.1 |
-| DREN | 100.255.0.0/24 | 100.255.0.1 (Outside) |
-| OUT | 201.0.0.0/24 | 201.0.0.1 (Outside) |
-| SDPC | 201.0.1.0/24 | 201.0.1.1 (Grey) |
-| SDPG | 201.0.2.0/24 | 201.0.2.1 (Grey) |
-| SDPT | 201.0.3.0/24 | 201.0.3.1 (Grey) |
-| AVD | 201.0.4.0/24 | 201.0.4.1 (Grey) |
-| DOMAIN | 201.1.0.0/24 | 201.1.0.1 (Inside) |
-| DOMSVC | 201.1.1.0/24 | 201.1.1.1 (Inside) |
-| DEV | 201.1.2.0/24 | 201.1.2.1 (Developer) |
-| DEVSVC | 201.1.3.0/24 | 201.1.3.1 (Developer) |
-| SEG | 201.1.4.0/24 | 201.1.4.1 (Sandbox) |
+| Zone | Subnet | Gateway | Note |
+|---|---:|---:|---|
+| MGMT | DHCP | DHCP | Hyper-V Default Switch (eth0 on all nodes) |
+| WAN | 201.255.0.0/24 | 201.255.0.1 | az-out eth1 |
+| EXT | 201.254.0.0/24 | 201.254.0.1 | az-ext eth1 |
+| DREN | 100.255.0.0/24 | 100.255.0.1 (Outside) | az-out eth2 |
+| OUT | 201.0.0.0/24 | 201.0.0.1 (Outside) | az-out eth3 ↔ az-grey eth1 |
+| SDPC | 201.0.1.0/24 | 201.0.1.1 (Grey) | az-grey eth2 |
+| SDPG | 201.0.2.0/24 | 201.0.2.1 (Grey) | az-grey eth3 |
+| SDPT | 201.0.3.0/24 | 201.0.3.1 (Grey) | az-grey eth4 |
+| AVD | 201.0.4.0/24 | 201.0.4.1 (Grey) | az-grey eth5 |
+| DOMAIN | 201.1.0.0/24 | 201.1.0.1 (Inside) | az-inside eth2 |
+| DOMSVC | 201.1.1.0/24 | 201.1.1.1 (Inside) | az-inside eth3 |
+| DEV | 201.1.2.0/24 | 201.1.2.1 (Developer) | az-dev eth2 |
+| DEVSVC | 201.1.3.0/24 | 201.1.3.1 (Developer) | az-dev eth3 |
+| SEG | 201.1.4.0/24 | 201.1.4.1 (Sandbox) | az-sandbox eth2 |
 
 ### 4.2 On-Prem (RCDN-U)
-| Zone | Subnet | Gateway |
-|---|---:|---:|
-| WAN | N/A | N/A |
-| EXT | 202.254.0.0/24 | 202.254.0.1 (External) |
-| DREN | 100.255.0.0/24 | 100.255.0.2 (Outside) |
-| OUT | 202.0.0.0/24 | 202.0.0.1 (Outside) |
-| SDPC | 202.0.1.0/24 | 202.0.1.1 (Grey) |
-| SDPG | 202.0.2.0/24 | 202.0.2.1 (Grey) |
-| SDPT | 202.0.3.0/24 | 202.0.3.1 (Grey) |
-| AVD | 202.0.4.0/24 | 202.0.4.1 (Grey) |
-| DOMAIN | 202.1.0.0/24 | 202.1.0.1 (Inside) |
-| DOMSVC | 202.1.1.0/24 | 202.1.1.1 (Inside) |
-| DEV | 202.1.2.0/24 | 202.1.2.1 (Developer) |
-| DEVSVC | 202.1.3.0/24 | 202.1.3.1 (Developer) |
-| SEG | 202.1.4.0/24 | 202.1.4.1 (Sandbox) |
-| HWIL | 202.1.5.0/24 | 202.1.5.1 (Sandbox) |
+| Zone | Subnet | Gateway | Note |
+|---|---:|---:|---|
+| MGMT | DHCP | DHCP | Hyper-V Default Switch (eth0 on all nodes) |
+| WAN | N/A | N/A | Not used in lab |
+| EXT | 202.254.0.0/24 | 202.254.0.1 (External) | onp-out eth3 |
+| DREN | 100.255.0.0/24 | 100.255.0.2 (Outside) | onp-out eth2 |
+| OUT | 202.0.0.0/24 | 202.0.0.1 (Outside) | onp-out eth1 ↔ onp-grey eth1 |
+| SDPC | 202.0.1.0/24 | 202.0.1.1 (Grey) | onp-grey eth2 |
+| SDPG | 202.0.2.0/24 | 202.0.2.1 (Grey) | onp-grey eth3 |
+| SDPT | 202.0.3.0/24 | 202.0.3.1 (Grey) | onp-grey eth4 |
+| AVD | 202.0.4.0/24 | 202.0.4.1 (Grey) | onp-grey eth5 |
+| DOMAIN | 202.1.0.0/24 | 202.1.0.1 (Inside) | onp-inside eth2 |
+| DOMSVC | 202.1.1.0/24 | 202.1.1.1 (Inside) | onp-inside eth3 |
+| DEV | 202.1.2.0/24 | 202.1.2.1 (Developer) | onp-dev eth2 |
+| DEVSVC | 202.1.3.0/24 | 202.1.3.1 (Developer) | onp-dev eth3 |
+| SEG | 202.1.4.0/24 | 202.1.4.1 (Sandbox) | onp-sandbox eth2 |
+| HWIL | 202.1.5.0/24 | 202.1.5.1 (Sandbox) | onp-sandbox eth3 |
 
 ## 5. Key design assumptions (must validate)
 ### 5.1 Router-to-router transit IPs (not in the spreadsheet)
@@ -83,6 +86,10 @@ Cross-site routing is **deliberately absent**. DREN exists only for restricted t
 
 ### 6.2 Cross-site
 - No remote-site routes are installed. Azure and On-Prem are isolated by design. DREN remains for tightly constrained diagnostics only.
+
+### 6.3 Management
+- `eth0` on every node is MGMT via Hyper-V Default Switch (DHCP).
+- SSH/HTTPS are permitted only on MGMT; data-plane interfaces drop those ports via `LOCAL-DROP-MGMT`.
 
 ## 7. Security policy model
 ### 7.1 High-level traffic matrix

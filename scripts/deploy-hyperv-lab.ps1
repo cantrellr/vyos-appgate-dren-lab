@@ -127,17 +127,17 @@ $effectiveGeneration = if ($VmGeneration -eq 0) {
 }
 
 $vmDefinitions = @(
-    @{ Name = 'vyos-az-ext'; Config = 'configs\azure\external.vyos'; Switches = @('Default Switch','az-wan') },
-    @{ Name = 'vyos-az-out'; Config = 'configs\azure\outside.vyos'; Switches = @('az-wan','az-dren','az-out') },
-    @{ Name = 'vyos-az-grey'; Config = 'configs\azure\grey.vyos'; Switches = @('az-out','az-sdpc','az-sdpg','az-sdpt','az-avd') },
-    @{ Name = 'vyos-az-inside'; Config = 'configs\azure\inside.vyos'; Switches = @('az-sdpc','az-domain','az-domsvc') },
-    @{ Name = 'vyos-az-dev'; Config = 'configs\azure\developer.vyos'; Switches = @('az-sdpc','az-dev','az-devsvc') },
-    @{ Name = 'vyos-az-sandbox'; Config = 'configs\azure\sandbox.vyos'; Switches = @('az-sdpc','az-seg') },
-    @{ Name = 'vyos-onp-out'; Config = 'configs\onprem\outside.vyos'; Switches = @('onp-out','az-dren','onp-ext') },
-    @{ Name = 'vyos-onp-grey'; Config = 'configs\onprem\grey.vyos'; Switches = @('onp-out','onp-sdpc','onp-sdpg','onp-sdpt','onp-avd') },
-    @{ Name = 'vyos-onp-inside'; Config = 'configs\onprem\inside.vyos'; Switches = @('onp-sdpc','onp-domain','onp-domsvc') },
-    @{ Name = 'vyos-onp-dev'; Config = 'configs\onprem\developer.vyos'; Switches = @('onp-sdpc','onp-dev','onp-devsvc') },
-    @{ Name = 'vyos-onp-sandbox'; Config = 'configs\onprem\sandbox.vyos'; Switches = @('onp-sdpc','onp-seg','onp-hwil') }
+    @{ Name = 'vyos-az-ext'; Config = 'configs\azure\external.vyos'; Switches = @('Default Switch','az-ext','az-wan') },
+    @{ Name = 'vyos-az-out'; Config = 'configs\azure\outside.vyos'; Switches = @('Default Switch','az-wan','az-dren','az-out') },
+    @{ Name = 'vyos-az-grey'; Config = 'configs\azure\grey.vyos'; Switches = @('Default Switch','az-out','az-sdpc','az-sdpg','az-sdpt','az-avd') },
+    @{ Name = 'vyos-az-inside'; Config = 'configs\azure\inside.vyos'; Switches = @('Default Switch','az-sdpc','az-domain','az-domsvc') },
+    @{ Name = 'vyos-az-dev'; Config = 'configs\azure\developer.vyos'; Switches = @('Default Switch','az-sdpc','az-dev','az-devsvc') },
+    @{ Name = 'vyos-az-sandbox'; Config = 'configs\azure\sandbox.vyos'; Switches = @('Default Switch','az-sdpc','az-seg') },
+    @{ Name = 'vyos-onp-out'; Config = 'configs\onprem\outside.vyos'; Switches = @('Default Switch','onp-out','az-dren','onp-ext') },
+    @{ Name = 'vyos-onp-grey'; Config = 'configs\onprem\grey.vyos'; Switches = @('Default Switch','onp-out','onp-sdpc','onp-sdpg','onp-sdpt','onp-avd') },
+    @{ Name = 'vyos-onp-inside'; Config = 'configs\onprem\inside.vyos'; Switches = @('Default Switch','onp-sdpc','onp-domain','onp-domsvc') },
+    @{ Name = 'vyos-onp-dev'; Config = 'configs\onprem\developer.vyos'; Switches = @('Default Switch','onp-sdpc','onp-dev','onp-devsvc') },
+    @{ Name = 'vyos-onp-sandbox'; Config = 'configs\onprem\sandbox.vyos'; Switches = @('Default Switch','onp-sdpc','onp-seg','onp-hwil') }
 )
 
 function Ensure-Vm {

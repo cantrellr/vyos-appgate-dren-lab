@@ -1,16 +1,32 @@
 configure
 set system host-name 'onp-dev'
 
-set interfaces ethernet eth0 description 'UPLINK-SDPC'
-set interfaces ethernet eth0 address '202.0.1.3/24'
+set interfaces ethernet eth0 description 'MGMT'
+set interfaces ethernet eth0 address 'dhcp'
 
-set interfaces ethernet eth1 description 'DEV'
-set interfaces ethernet eth1 address '202.1.2.1/24'
+set interfaces ethernet eth1 description 'UPLINK-SDPC'
+set interfaces ethernet eth1 address '202.0.1.3/24'
 
-set interfaces ethernet eth2 description 'DEVSVC'
-set interfaces ethernet eth2 address '202.1.3.1/24'
+set interfaces ethernet eth2 description 'DEV'
+set interfaces ethernet eth2 address '202.1.2.1/24'
+
+set interfaces ethernet eth3 description 'DEVSVC'
+set interfaces ethernet eth3 address '202.1.3.1/24'
 
 set protocols static route '0.0.0.0/0' next-hop '202.0.1.1'
+
+set firewall ipv4 name LOCAL-DROP-MGMT default-action 'accept'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 destination port '22'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 destination port '443,8443'
+
+# Restrict management services to MGMT only
+set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth3 firewall local name 'LOCAL-DROP-MGMT'
 commit
 save
 exit

@@ -1,11 +1,14 @@
 configure
 set system host-name 'az-sandbox'
 
-set interfaces ethernet eth0 description 'UPLINK-SDPC'
-set interfaces ethernet eth0 address '201.0.1.4/24'
+set interfaces ethernet eth0 description 'MGMT'
+set interfaces ethernet eth0 address 'dhcp'
 
-set interfaces ethernet eth1 description 'SEG'
-set interfaces ethernet eth1 address '201.1.4.1/24'
+set interfaces ethernet eth1 description 'UPLINK-SDPC'
+set interfaces ethernet eth1 address '201.0.1.4/24'
+
+set interfaces ethernet eth2 description 'SEG'
+set interfaces ethernet eth2 address '201.1.4.1/24'
 
 # No HWIL subnet in Azure per spreadsheet
 
@@ -20,9 +23,21 @@ set firewall ipv4 name SEG-TO-SDPC rule 20 action 'accept'
 set firewall ipv4 name SEG-TO-SDPC rule 20 state new
 set firewall ipv4 name SEG-TO-SDPC rule 20 destination address '201.0.1.1'
 
-set firewall zone SEG interface 'eth1'
-set firewall zone SDPC interface 'eth0'
+set firewall ipv4 name LOCAL-DROP-MGMT default-action 'accept'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 destination port '22'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 destination port '443,8443'
+
+set firewall zone SEG interface 'eth2'
+set firewall zone SDPC interface 'eth1'
 set firewall zone SDPC from SEG firewall name 'SEG-TO-SDPC'
+
+# Restrict management services to MGMT only
+set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
 
 commit
 save

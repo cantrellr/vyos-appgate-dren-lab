@@ -2,6 +2,7 @@
 
 ## 1) Before you touch anything
 - Confirm Hyper-V NIC mapping (MACs) and set `hw-id` in each config.
+- **eth0 is MGMT** for every router: DHCP from Hyper-V **Default Switch**. Ensure this switch exists.
 - Confirm the DREN addressing between Outside routers (100.255.0.0/24, Azure .1 / On-Prem .2).
 - Decide whether On-Prem External (202.254.0.0/24) is used; it is optional.
 
@@ -19,6 +20,10 @@ Optional overrides:
 ```powershell
 powershell .\scripts\deploy-hyperv-lab.ps1 -MemoryStartupBytes 1GB -CpuCount 1 -RebuildConfigIsos -ReattachDvds
 ```
+
+Notes:
+- VM NIC 0 = MGMT (DHCP) on Hyper-V Default Switch.
+- NIC order in configs starts at `eth1` for data plane.
 
 ## 1.2) Generate `hw-id` snippets
 ```powershell

@@ -9,6 +9,7 @@ $ErrorActionPreference = 'Stop'
 $internalSwitches = @(
     'az-dren',
     'az-out',
+    'az-ext',
     'az-sdpc',
     'az-sdpg',
     'az-sdpt',

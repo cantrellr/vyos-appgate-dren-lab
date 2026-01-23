@@ -2,17 +2,28 @@ configure
 set system host-name 'onp-out'
 
 # Interfaces
-set interfaces ethernet eth0 description 'OUT'
-set interfaces ethernet eth0 address '202.0.0.1/24'
+set interfaces ethernet eth0 description 'MGMT'
+set interfaces ethernet eth0 address 'dhcp'
 
-set interfaces ethernet eth1 description 'DREN'
-set interfaces ethernet eth1 address '100.255.0.2/24'
+set interfaces ethernet eth1 description 'OUT'
+set interfaces ethernet eth1 address '202.0.0.1/24'
 
-set interfaces ethernet eth2 description 'EXT'
-set interfaces ethernet eth2 address '202.254.0.2/24'
+set interfaces ethernet eth2 description 'DREN'
+set interfaces ethernet eth2 address '100.255.0.2/24'
+
+set interfaces ethernet eth3 description 'EXT'
+set interfaces ethernet eth3 address '202.254.0.2/24'
 
 # Firewall: allow non-DREN; restrict DREN to limited ports
 set firewall ipv4 name ALLOW-ALL default-action 'accept'
+
+set firewall ipv4 name LOCAL-DROP-MGMT default-action 'accept'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 destination port '22'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 destination port '443,8443'
 
 set firewall ipv4 name DREN-RESTRICT default-action 'drop'
 set firewall ipv4 name DREN-RESTRICT rule 10 action 'accept'
@@ -27,9 +38,9 @@ set firewall ipv4 name DREN-RESTRICT rule 40 action 'accept'
 set firewall ipv4 name DREN-RESTRICT rule 40 protocol 'udp'
 set firewall ipv4 name DREN-RESTRICT rule 40 destination port '53'
 
-set firewall zone OUT interface 'eth0'
-set firewall zone DREN interface 'eth1'
-set firewall zone EXT interface 'eth2'
+set firewall zone OUT interface 'eth1'
+set firewall zone DREN interface 'eth2'
+set firewall zone EXT interface 'eth3'
 
 set firewall zone OUT from EXT firewall name 'ALLOW-ALL'
 set firewall zone EXT from OUT firewall name 'ALLOW-ALL'
@@ -38,6 +49,11 @@ set firewall zone OUT from DREN firewall name 'DREN-RESTRICT'
 set firewall zone EXT from DREN firewall name 'DREN-RESTRICT'
 set firewall zone DREN from OUT firewall name 'DREN-RESTRICT'
 set firewall zone DREN from EXT firewall name 'DREN-RESTRICT'
+
+# Restrict management services to MGMT only
+set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth3 firewall local name 'LOCAL-DROP-MGMT'
 
 # Routing
 set protocols static route '0.0.0.0/0' next-hop '202.254.0.1'

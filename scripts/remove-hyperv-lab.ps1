@@ -6,7 +6,7 @@ param(
         'vyos-onp-out','vyos-onp-grey','vyos-onp-inside','vyos-onp-dev','vyos-onp-sandbox'
     ),
     [string[]]$SwitchNames = @(
-        'az-dren','az-out','az-sdpc','az-sdpg','az-sdpt','az-avd','az-domain','az-domsvc','az-dev','az-devsvc','az-seg','az-wan',
+        'az-dren','az-out','az-ext','az-sdpc','az-sdpg','az-sdpt','az-avd','az-domain','az-domsvc','az-dev','az-devsvc','az-seg','az-wan',
         'onp-out','onp-dren','onp-sdpc','onp-sdpg','onp-sdpt','onp-avd','onp-domain','onp-domsvc','onp-dev','onp-devsvc','onp-seg','onp-hwil','onp-ext'
     ),
     [switch]$RemoveVhds,

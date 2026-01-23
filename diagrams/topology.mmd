@@ -1,4 +1,6 @@
+%% eth0 = MGMT via Hyper-V Default Switch (DHCP) for all nodes
 flowchart LR
+  MGMT(("MGMT / Default Switch\nDHCP / eth0"))
   subgraph AZ[Azure]
     EXT[External Router\nEXT 201.254.0.2/24\nWAN 201.255.0.2/24]
     OUT[Outside Router\nWAN 201.255.0.3/24\nOUT 201.0.0.1/24\nDREN 100.255.0.1/24]
@@ -28,3 +30,14 @@ flowchart LR
   end
 
   OUT ===|"DREN 100.255.0.0/24 (restricted)"| OUT2
+  MGMT -.-> EXT
+  MGMT -.-> OUT
+  MGMT -.-> GREY
+  MGMT -.-> INS
+  MGMT -.-> DEV
+  MGMT -.-> SBX
+  MGMT -.-> OUT2
+  MGMT -.-> GREY2
+  MGMT -.-> INS2
+  MGMT -.-> DEV2
+  MGMT -.-> SBX2

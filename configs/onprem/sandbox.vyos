@@ -1,14 +1,17 @@
 configure
 set system host-name 'onp-sandbox'
 
-set interfaces ethernet eth0 description 'UPLINK-SDPC'
-set interfaces ethernet eth0 address '202.0.1.4/24'
+set interfaces ethernet eth0 description 'MGMT'
+set interfaces ethernet eth0 address 'dhcp'
 
-set interfaces ethernet eth1 description 'SEG'
-set interfaces ethernet eth1 address '202.1.4.1/24'
+set interfaces ethernet eth1 description 'UPLINK-SDPC'
+set interfaces ethernet eth1 address '202.0.1.4/24'
 
-set interfaces ethernet eth2 description 'HWIL'
-set interfaces ethernet eth2 address '202.1.5.1/24'
+set interfaces ethernet eth2 description 'SEG'
+set interfaces ethernet eth2 address '202.1.4.1/24'
+
+set interfaces ethernet eth3 description 'HWIL'
+set interfaces ethernet eth3 address '202.1.5.1/24'
 
 set protocols static route '0.0.0.0/0' next-hop '202.0.1.1'
 
@@ -36,11 +39,24 @@ set firewall ipv4 name HWIL-TO-SEG rule 30 action 'accept'
 set firewall ipv4 name HWIL-TO-SEG rule 30 state new
 set firewall ipv4 name HWIL-TO-SEG rule 30 destination address '202.1.5.1'
 
-set firewall zone SEG interface 'eth1'
-set firewall zone SDPC interface 'eth0'
-set firewall zone HWIL interface 'eth2'
+set firewall ipv4 name LOCAL-DROP-MGMT default-action 'accept'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 destination port '22'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 destination port '443,8443'
+
+set firewall zone SEG interface 'eth2'
+set firewall zone SDPC interface 'eth1'
+set firewall zone HWIL interface 'eth3'
 set firewall zone SDPC from SEG firewall name 'SEG-TO-SDPC'
 set firewall zone SEG from HWIL firewall name 'HWIL-TO-SEG'
+
+# Restrict management services to MGMT only
+set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth3 firewall local name 'LOCAL-DROP-MGMT'
 
 commit
 save

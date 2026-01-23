@@ -1,15 +1,32 @@
 configure
 set system host-name 'az-ext'
 
-# External and WAN uplinks
-set interfaces ethernet eth0 description 'EXT'
-set interfaces ethernet eth0 address '201.254.0.2/24'
+# Management (DHCP via Hyper-V Default Switch)
+set interfaces ethernet eth0 description 'MGMT'
+set interfaces ethernet eth0 address 'dhcp'
 
-set interfaces ethernet eth1 description 'WAN'
+# External and WAN uplinks
+set interfaces ethernet eth1 description 'EXT'
 set interfaces ethernet eth1 address '201.255.0.2/24'
+
+set interfaces ethernet eth2 description 'WAN'
+set interfaces ethernet eth2 address '201.254.0.2/24'
 
 # Default route to Internet
 set protocols static route '0.0.0.0/0' next-hop '201.255.0.1'
+
+# Drop management services on data-plane interfaces
+set firewall ipv4 name LOCAL-DROP-MGMT default-action 'accept'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 destination port '22'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 destination port '443,8443'
+
+# Restrict management services to MGMT only
+set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
 
 commit
 save

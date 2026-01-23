@@ -1,28 +1,29 @@
 site,zone,subnet,gateway,notes
-azure,wan,201.255.0.0/24,201.255.0.1,Internet uplink (az-out eth0)
-azure,ext,201.254.0.0/24,201.254.0.1,External/LAN (az-ext eth0)
-azure,dren,100.255.0.0/24,100.255.0.1,DREN link (az-out eth1)
-azure,out,201.0.0.0/24,201.0.0.1,Between az-out and az-grey
-azure,sdpc,201.0.1.0/24,201.0.1.1,Controllers
-azure,sdpg,201.0.2.0/24,201.0.2.1,Gateways
-azure,sdpt,201.0.3.0/24,201.0.3.1,Gateways
-azure,avd,201.0.4.0/24,201.0.4.1,AVD clients
-azure,domain,201.1.0.0/24,201.1.0.1,Domain pool
-azure,domsvc,201.1.1.0/24,201.1.1.1,Domain services
-azure,dev,201.1.2.0/24,201.1.2.1,Developer
-azure,devsvc,201.1.3.0/24,201.1.3.1,Developer services
-azure,seg,201.1.4.0/24,201.1.4.1,Sandbox SEG
+common,mgmt,dhcp,dhcp,"Hyper-V Default Switch, eth0 on all routers"
+azure,wan,201.255.0.0/24,201.255.0.1,Internet uplink (az-out eth1)
+azure,ext,201.254.0.0/24,201.254.0.1,External/LAN (az-ext eth1)
+azure,dren,100.255.0.0/24,100.255.0.1,DREN link (az-out eth2)
+azure,out,201.0.0.0/24,201.0.0.1,Between az-out and az-grey (eth3/eth1)
+azure,sdpc,201.0.1.0/24,201.0.1.1,Controllers (az-grey eth2)
+azure,sdpg,201.0.2.0/24,201.0.2.1,Gateways (az-grey eth3)
+azure,sdpt,201.0.3.0/24,201.0.3.1,Gateways (az-grey eth4)
+azure,avd,201.0.4.0/24,201.0.4.1,AVD clients (az-grey eth5)
+azure,domain,201.1.0.0/24,201.1.0.1,Domain pool (az-inside eth2)
+azure,domsvc,201.1.1.0/24,201.1.1.1,Domain services (az-inside eth3)
+azure,dev,201.1.2.0/24,201.1.2.1,Developer (az-dev eth2)
+azure,devsvc,201.1.3.0/24,201.1.3.1,Developer services (az-dev eth3)
+azure,seg,201.1.4.0/24,201.1.4.1,Sandbox SEG (az-sandbox eth2)
 onprem,wan,N/A,N/A,Not used in lab
 onprem,ext,202.254.0.0/24,202.254.0.1,External/LAN (onp-out eth2)
 onprem,dren,100.255.0.0/24,100.255.0.2,DREN link (onp-out eth1)
-onprem,out,202.0.0.0/24,202.0.0.1,Between onp-out and onp-grey
-onprem,sdpc,202.0.1.0/24,202.0.1.1,Controllers
-onprem,sdpg,202.0.2.0/24,202.0.2.1,Gateways
-onprem,sdpt,202.0.3.0/24,202.0.3.1,Gateways
-onprem,avd,202.0.4.0/24,202.0.4.1,AVD clients
-onprem,domain,202.1.0.0/24,202.1.0.1,Domain pool
-onprem,domsvc,202.1.1.0/24,202.1.1.1,Domain services
-onprem,dev,202.1.2.0/24,202.1.2.1,Developer
-onprem,devsvc,202.1.3.0/24,202.1.3.1,Developer services
-onprem,seg,202.1.4.0/24,202.1.4.1,Sandbox SEG
-onprem,hwil,202.1.5.0/24,202.1.5.1,HWIL (isolated to SEG)
+onprem,out,202.0.0.0/24,202.0.0.1,Between onp-out (eth1) and onp-grey (eth1)
+onprem,sdpc,202.0.1.0/24,202.0.1.1,Controllers (onp-grey eth2)
+onprem,sdpg,202.0.2.0/24,202.0.2.1,Gateways (onp-grey eth3)
+onprem,sdpt,202.0.3.0/24,202.0.3.1,Gateways (onp-grey eth4)
+onprem,avd,202.0.4.0/24,202.0.4.1,AVD clients (onp-grey eth5)
+onprem,domain,202.1.0.0/24,202.1.0.1,Domain pool (onp-inside eth2)
+onprem,domsvc,202.1.1.0/24,202.1.1.1,Domain services (onp-inside eth3)
+onprem,dev,202.1.2.0/24,202.1.2.1,Developer (onp-dev eth2)
+onprem,devsvc,202.1.3.0/24,202.1.3.1,Developer services (onp-dev eth3)
+onprem,seg,202.1.4.0/24,202.1.4.1,Sandbox SEG (onp-sandbox eth2)
+onprem,hwil,202.1.5.0/24,202.1.5.1,HWIL (onp-sandbox eth3 isolated to SEG)

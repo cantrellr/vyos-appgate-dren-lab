@@ -1,20 +1,23 @@
 configure
 set system host-name 'onp-grey'
 
-set interfaces ethernet eth0 description 'ONP-OUT'
-set interfaces ethernet eth0 address '202.0.0.2/24'
+set interfaces ethernet eth0 description 'MGMT'
+set interfaces ethernet eth0 address 'dhcp'
 
-set interfaces ethernet eth1 description 'SDPC'
-set interfaces ethernet eth1 address '202.0.1.1/24'
+set interfaces ethernet eth1 description 'ONP-OUT'
+set interfaces ethernet eth1 address '202.0.0.2/24'
 
-set interfaces ethernet eth2 description 'SDPG'
-set interfaces ethernet eth2 address '202.0.2.1/24'
+set interfaces ethernet eth2 description 'SDPC'
+set interfaces ethernet eth2 address '202.0.1.1/24'
 
-set interfaces ethernet eth3 description 'SDPT'
-set interfaces ethernet eth3 address '202.0.3.1/24'
+set interfaces ethernet eth3 description 'SDPG'
+set interfaces ethernet eth3 address '202.0.2.1/24'
 
-set interfaces ethernet eth4 description 'AVD'
-set interfaces ethernet eth4 address '202.0.4.1/24'
+set interfaces ethernet eth4 description 'SDPT'
+set interfaces ethernet eth4 address '202.0.3.1/24'
+
+set interfaces ethernet eth5 description 'AVD'
+set interfaces ethernet eth5 address '202.0.4.1/24'
 
 # Routing (site-local only)
 set protocols static route '0.0.0.0/0' next-hop '202.0.0.1'
@@ -28,11 +31,19 @@ set protocols static route '202.1.5.0/24' next-hop '202.0.1.2'
 # Firewall: allow all within site
 set firewall ipv4 name ALLOW-ALL default-action 'accept'
 
-set firewall zone OUT interface 'eth0'
-set firewall zone SDPC interface 'eth1'
-set firewall zone SDPG interface 'eth2'
-set firewall zone SDPT interface 'eth3'
-set firewall zone AVD interface 'eth4'
+set firewall ipv4 name LOCAL-DROP-MGMT default-action 'accept'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 10 destination port '22'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 action 'drop'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 protocol 'tcp'
+set firewall ipv4 name LOCAL-DROP-MGMT rule 20 destination port '443,8443'
+
+set firewall zone OUT interface 'eth1'
+set firewall zone SDPC interface 'eth2'
+set firewall zone SDPG interface 'eth3'
+set firewall zone SDPT interface 'eth4'
+set firewall zone AVD interface 'eth5'
 
 set firewall zone OUT from SDPC firewall name 'ALLOW-ALL'
 set firewall zone OUT from SDPG firewall name 'ALLOW-ALL'
@@ -56,6 +67,13 @@ set firewall zone AVD from OUT firewall name 'ALLOW-ALL'
 set firewall zone AVD from SDPC firewall name 'ALLOW-ALL'
 set firewall zone AVD from SDPG firewall name 'ALLOW-ALL'
 set firewall zone AVD from SDPT firewall name 'ALLOW-ALL'
+
+# Restrict management services to MGMT only
+set interfaces ethernet eth1 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth2 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth3 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth4 firewall local name 'LOCAL-DROP-MGMT'
+set interfaces ethernet eth5 firewall local name 'LOCAL-DROP-MGMT'
 
 commit
 save
