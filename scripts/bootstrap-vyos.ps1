@@ -26,7 +26,22 @@ if ([string]::IsNullOrWhiteSpace($IsoWorkingRoot)) {
 
 if ([string]::IsNullOrWhiteSpace($IsoOutputPath)) {
     $isoSuffix = if ($IsoMode -eq 'NoCloud') { 'seed' } else { 'configonly' }
-    $IsoOutputPath = Join-Path $IsoWorkingRoot ("$VmName.$isoSuffix.iso")
+    # prefer hostname from config (e.g. az-core/onp-core); fall back to VmName
+    $configHostname = Get-VyosHostNameFromConfig -Path $ConfigPath
+    if ([string]::IsNullOrWhiteSpace($configHostname)) {
+        # try to derive from VmName like 'vyos-az-core' -> 'az-core'
+        if ($VmName -match '^vyos-(az|onp)-(.+)$') {
+            $basename = "$($matches[1])-$($matches[2])"
+        } elseif ($VmName -match '^vyos-(.+)$') {
+            $basename = $matches[1]
+        } else {
+            $basename = $VmName
+        }
+    } else {
+        $basename = $configHostname
+    }
+
+    $IsoOutputPath = Join-Path $IsoWorkingRoot ("$basename.$isoSuffix.iso")
 }
 
 if ([string]::IsNullOrWhiteSpace($InstanceId)) {
@@ -65,6 +80,16 @@ $networkConfigLines = $null
 
 if ($IsoMode -eq 'NoCloud') {
     $hostname = Get-VyosHostNameFromConfig -Path $ConfigPath
+    if ([string]::IsNullOrWhiteSpace($hostname)) {
+        # derive hostname from VmName when config doesn't include one
+        if ($VmName -match '^vyos-(az|onp)-(.+)$') {
+            $hostname = "$($matches[1])-$($matches[2])"
+        } elseif ($VmName -match '^vyos-(.+)$') {
+            $hostname = $matches[1]
+        } else {
+            $hostname = $VmName
+        }
+    }
 
     $vyosConfigLines = Get-Content -Path $ConfigPath | ForEach-Object { $_.Trim() } | Where-Object {
         $_ -and

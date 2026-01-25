@@ -1,0 +1,35 @@
+# core.vyos (Azure) — Core (Hub)
+set system host-name 'az-core'
+
+set interfaces ethernet eth0 description 'VYOS-OOB'
+set interfaces ethernet eth0 address '10.255.255.13/24'
+
+set interfaces ethernet eth1 description 'AZ-CORE'
+set interfaces ethernet eth1 address '201.0.0.1/24'
+
+set interfaces ethernet eth2 description 'AZ-SDPC'
+set interfaces ethernet eth2 address '201.0.1.1/24'
+
+set interfaces ethernet eth3 description 'AZ-SDPG'
+set interfaces ethernet eth3 address '201.0.2.1/24'
+
+set interfaces ethernet eth4 description 'AZ-SDPT'
+set interfaces ethernet eth4 address '201.0.3.1/24'
+
+# Default route toward edge.vyos on AZ-CORE
+set protocols static route 0.0.0.0/0 next-hop '201.0.0.2'
+
+# Protected spokes — route prefixes via their AZ-CORE IPs
+# inside.vyos
+set protocols static route 201.1.0.0/16 next-hop '201.0.0.3'
+# developer.vyos
+set protocols static route 201.2.0.0/16 next-hop '201.0.0.4'
+# segment1.vyos
+set protocols static route 201.3.0.0/16 next-hop '201.0.0.5'
+
+# DREN network via edge.vyos
+set protocols static route 100.255.0.0/24 next-hop '201.0.0.2'
+
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'

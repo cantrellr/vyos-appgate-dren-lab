@@ -10,7 +10,7 @@ param(
     [string]$AzureExternalAdapterName,
     [string]$OnPremUnderlayAdapterName,
     [string]$VmRoot,
-    [string]$VhdRoot,
+    [string]$VhdRoot = 'D:\Production_Data\HyperV\Virtual Hard Disks\vyos-appgate-dren-lab-vhdx',
     [switch]$CreateSwitches = $true,
     [switch]$CreateVms = $true,
     [switch]$CreateConfigIsos = $true,
@@ -22,13 +22,15 @@ param(
     [ValidateSet('ConfigOnly','NoCloud')]
     [string]$ConfigIsoMode = 'ConfigOnly',
     [switch]$UseVhdTemplate,
-    [string]$VhdTemplatePath = 'E:\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx',
+    [string]$VhdTemplatePath = 'D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx',
     [ValidateSet(0,1,2)]
     [int]$VmGeneration = 0,
     [bool]$SecureBootEnabled = $false,
     [ValidateSet('MicrosoftUEFICertificateAuthority','MicrosoftWindows')]
     [string]$SecureBootTemplate = 'MicrosoftUEFICertificateAuthority',
-    [switch]$OverwriteExistingVhd
+    [switch]$OverwriteExistingVhd,
+    [switch]$ExportHwIds = $true,
+    [string]$HwIdsOutputPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -127,18 +129,20 @@ $effectiveGeneration = if ($VmGeneration -eq 0) {
 }
 
 $vmDefinitions = @(
-    @{ Name = 'vyos-az-ext'; Config = 'configs\azure\external.vyos'; Switches = @('Default Switch','az-ext','az-wan') },
-    @{ Name = 'vyos-az-out'; Config = 'configs\azure\outside.vyos'; Switches = @('Default Switch','az-wan','az-dren','az-out') },
-    @{ Name = 'vyos-az-grey'; Config = 'configs\azure\grey.vyos'; Switches = @('Default Switch','az-out','az-sdpc','az-sdpg','az-sdpt','az-avd') },
-    @{ Name = 'vyos-az-inside'; Config = 'configs\azure\inside.vyos'; Switches = @('Default Switch','az-sdpc','az-domain','az-domsvc') },
-    @{ Name = 'vyos-az-dev'; Config = 'configs\azure\developer.vyos'; Switches = @('Default Switch','az-sdpc','az-dev','az-devsvc') },
-    @{ Name = 'vyos-az-sandbox'; Config = 'configs\azure\sandbox.vyos'; Switches = @('Default Switch','az-sdpc','az-seg') },
-    @{ Name = 'vyos-onp-out'; Config = 'configs\onprem\outside.vyos'; Switches = @('Default Switch','onp-out','az-dren','onp-ext') },
-    @{ Name = 'vyos-onp-grey'; Config = 'configs\onprem\grey.vyos'; Switches = @('Default Switch','onp-out','onp-sdpc','onp-sdpg','onp-sdpt','onp-avd') },
-    @{ Name = 'vyos-onp-inside'; Config = 'configs\onprem\inside.vyos'; Switches = @('Default Switch','onp-sdpc','onp-domain','onp-domsvc') },
-    @{ Name = 'vyos-onp-dev'; Config = 'configs\onprem\developer.vyos'; Switches = @('Default Switch','onp-sdpc','onp-dev','onp-devsvc') },
-    @{ Name = 'vyos-onp-sandbox'; Config = 'configs\onprem\sandbox.vyos'; Switches = @('Default Switch','onp-sdpc','onp-seg','onp-hwil') }
+    @{ Name = 'vyos-az-external';  Config = 'configs\azure\external.vyos';  Switches = @('vyos-oob','az-wan','az-ext') },
+    @{ Name = 'vyos-az-edge';      Config = 'configs\azure\edge.vyos';      Switches = @('vyos-oob','az-ext','az-dren','az-core') },
+    @{ Name = 'vyos-az-core';      Config = 'configs\azure\core.vyos';      Switches = @('vyos-oob','az-core','az-sdpc','az-sdpg','az-sdpt') },
+    @{ Name = 'vyos-az-inside';    Config = 'configs\azure\inside.vyos';    Switches = @('vyos-oob','az-core','az-domain','az-domsvc','az-avd') },
+    @{ Name = 'vyos-az-developer'; Config = 'configs\azure\developer.vyos'; Switches = @('vyos-oob','az-core','az-dev','az-devsvc') },
+    @{ Name = 'vyos-az-segment1';  Config = 'configs\azure\segment1.vyos';  Switches = @('vyos-oob','az-core','az-seg','az-hwil') },
+
+    @{ Name = 'vyos-onp-edge';      Config = 'configs\onprem\edge.vyos';      Switches = @('vyos-oob','onp-ext','az-dren','onp-core') },
+    @{ Name = 'vyos-onp-core';      Config = 'configs\onprem\core.vyos';      Switches = @('vyos-oob','onp-core','onp-sdpc','onp-sdpg','onp-sdpt') },
+    @{ Name = 'vyos-onp-inside';    Config = 'configs\onprem\inside.vyos';    Switches = @('vyos-oob','onp-core','onp-domain','onp-domsvc','onp-avd') },
+    @{ Name = 'vyos-onp-developer'; Config = 'configs\onprem\developer.vyos'; Switches = @('vyos-oob','onp-core','onp-dev','onp-devsvc') },
+    @{ Name = 'vyos-onp-segment1';  Config = 'configs\onprem\segment1.vyos';  Switches = @('vyos-oob','onp-core','onp-seg','onp-hwil') }
 )
+
 
 function Ensure-Vm {
     param(
@@ -354,3 +358,26 @@ foreach ($vm in $vmDefinitions) {
 }
 
 Write-Host 'Done.'
+
+if ($ExportHwIds) {
+    if ([string]::IsNullOrWhiteSpace($HwIdsOutputPath)) {
+        $HwIdsOutputPath = Join-Path $RepoRoot 'artifacts\vyos-hwids.vyos'
+    }
+
+    $exportScript = Join-Path $RepoRoot 'scripts\export-vyos-hwids.ps1'
+    if (-not (Test-Path $exportScript)) {
+        Write-Host "[WARN] export-vyos-hwids.ps1 not found: $exportScript"
+    } else {
+        $answer = Read-Host "Start all VMs now, wait ~30s, and run hw-id export? (Y/N)"
+        if ($answer -match '^[Yy]') {
+            Write-Host "Starting all VMs..."
+            $vmDefinitions | ForEach-Object { Start-VM -Name $_.Name -ErrorAction SilentlyContinue | Out-Null }
+            Write-Host "Waiting 30 seconds for adapters to initialize..."
+            Start-Sleep -Seconds 30
+            Write-Host "Running hw-id export..."
+            & $exportScript -OutputPath $HwIdsOutputPath | Out-Host
+        } else {
+            Write-Host "[WARN] Skipping hw-id export. Please run scripts\export-vyos-hwids.ps1 after starting VMs to populate $HwIdsOutputPath"
+        }
+    }
+}

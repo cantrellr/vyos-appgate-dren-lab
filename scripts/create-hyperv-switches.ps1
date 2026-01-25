@@ -8,8 +8,8 @@ $ErrorActionPreference = 'Stop'
 
 $internalSwitches = @(
     'az-dren',
-    'az-out',
     'az-ext',
+    'az-core',
     'az-sdpc',
     'az-sdpg',
     'az-sdpt',
@@ -19,8 +19,9 @@ $internalSwitches = @(
     'az-dev',
     'az-devsvc',
     'az-seg',
-    'onp-out',
-    'onp-dren',
+    'az-hwil',
+    'vyos-oob',
+    'onp-core',
     'onp-sdpc',
     'onp-sdpg',
     'onp-sdpt',
@@ -30,8 +31,7 @@ $internalSwitches = @(
     'onp-dev',
     'onp-devsvc',
     'onp-seg',
-    'onp-hwil',
-    'onp-ext'
+    'onp-hwil'
 )
 
 $externalSwitches = @(
@@ -109,9 +109,58 @@ function Ensure-SwitchHostIp {
     }
 }
 
+function Ensure-SwitchInternalWithNat {
+    param(
+        [string]$SwitchName,
+        [string]$HostIp = '10.255.255.1',
+        [int]$PrefixLength = 24,
+        [string]$NatName = 'VyosOobNat'
+    )
+
+    Ensure-SwitchPrivate -Name $SwitchName
+
+    # Interface alias created by internal vmswitch
+    $ifAlias = "vEthernet ($SwitchName)"
+    $netAdapter = Get-NetAdapter -Name $ifAlias -ErrorAction SilentlyContinue
+    if ($null -eq $netAdapter) {
+        Write-Host "[WARN] vEthernet adapter not found for $SwitchName; host IP/NAT not configured yet: $ifAlias"
+        return
+    }
+
+    # Assign host IP if not present
+    $existingIp = Get-NetIPAddress -InterfaceAlias $ifAlias -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -eq $HostIp }
+    if ($null -eq $existingIp) {
+        try {
+            New-NetIPAddress -InterfaceAlias $ifAlias -IPAddress $HostIp -PrefixLength $PrefixLength -ErrorAction Stop | Out-Null
+            Write-Host "[NEW] Assigned $HostIp/$PrefixLength to $ifAlias"
+        } catch {
+            Write-Host "[WARN] Failed to assign $HostIp to ${ifAlias}: $($_.Exception.Message)"
+        }
+    } else {
+        Write-Host "[OK] Host IP already set on $ifAlias"
+    }
+
+    # Ensure NAT exists
+    $nat = Get-NetNat -Name $NatName -ErrorAction SilentlyContinue
+    $prefix = "$($HostIp -replace '\.\d+$','0')/$PrefixLength"
+    if ($null -eq $nat) {
+        try {
+            New-NetNat -Name $NatName -InternalIPInterfaceAddressPrefix $prefix -ErrorAction Stop | Out-Null
+            Write-Host "[NEW] Created NAT $NatName for $prefix"
+        } catch {
+            Write-Host "[WARN] Failed to create NAT ${NatName}: $($_.Exception.Message)"
+        }
+    } else {
+        Write-Host "[OK] NAT exists: $NatName"
+    }
+}
+
 foreach ($name in $internalSwitches) {
     Ensure-SwitchPrivate -Name $name
 }
+
+# Configure OOB internal switch with NAT (10.255.255.0/24)
+Ensure-SwitchInternalWithNat -SwitchName 'vyos-oob' -HostIp '10.255.255.1' -PrefixLength 24 -NatName 'VyosOobNat'
 
 foreach ($ext in $externalSwitches) {
     if ($UseExternalAdapters -and -not [string]::IsNullOrWhiteSpace($ext.Adapter)) {

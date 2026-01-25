@@ -1,0 +1,21 @@
+# segment1.vyos (Azure) — Protected Segment1 (Spoke)
+set system host-name 'az-segment1'
+
+set interfaces ethernet eth0 description 'VYOS-OOB'
+set interfaces ethernet eth0 address '10.255.255.16/24'
+
+set interfaces ethernet eth1 description 'AZ-CORE'
+set interfaces ethernet eth1 address '201.0.0.5/24'
+
+set interfaces ethernet eth2 description 'AZ-SEG'
+set interfaces ethernet eth2 address '201.3.0.1/24'
+
+set interfaces ethernet eth3 description 'AZ-HWIL'
+set interfaces ethernet eth3 address '201.3.1.1/24'
+
+# Default route toward hub core.vyos
+set protocols static route 0.0.0.0/0 next-hop '201.0.0.1'
+
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'

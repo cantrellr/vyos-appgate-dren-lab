@@ -1,0 +1,35 @@
+# core.vyos (On-prem) — Core (Hub)
+set system host-name 'onp-core'
+
+set interfaces ethernet eth0 description 'VYOS-OOB'
+set interfaces ethernet eth0 address '10.255.255.18/24'
+
+set interfaces ethernet eth1 description 'ONP-CORE'
+set interfaces ethernet eth1 address '202.0.0.1/24'
+
+set interfaces ethernet eth2 description 'ONP-SDPC'
+set interfaces ethernet eth2 address '202.0.1.1/24'
+
+set interfaces ethernet eth3 description 'ONP-SDPG'
+set interfaces ethernet eth3 address '202.0.2.1/24'
+
+set interfaces ethernet eth4 description 'ONP-SDPT'
+set interfaces ethernet eth4 address '202.0.3.1/24'
+
+# Default route toward edge.vyos
+set protocols static route 0.0.0.0/0 next-hop '202.0.0.2'
+
+# Protected spokes — route prefixes via their ONP-CORE IPs
+# inside.vyos
+set protocols static route 202.1.0.0/16 next-hop '202.0.0.3'
+# developer.vyos
+set protocols static route 202.2.0.0/16 next-hop '202.0.0.4'
+# segment1.vyos
+set protocols static route 202.3.0.0/16 next-hop '202.0.0.5'
+
+# DREN network via edge.vyos
+set protocols static route 100.255.0.0/24 next-hop '202.0.0.2'
+
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'

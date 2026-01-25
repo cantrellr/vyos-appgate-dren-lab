@@ -1,90 +1,81 @@
-# Runbook: Build, Validate, Troubleshoot
+# Runbook — Hyper‑V Deployment + Validation
 
-## 1) Before you touch anything
-- Confirm Hyper-V NIC mapping (MACs) and set `hw-id` in each config.
-- **eth0 is MGMT** for every router: DHCP from Hyper-V **Default Switch**. Ensure this switch exists.
-- Confirm the DREN addressing between Outside routers (100.255.0.0/24, Azure .1 / On-Prem .2).
-- Decide whether On-Prem External (202.254.0.0/24) is used; it is optional.
+## 0) Prereqs
+- Windows host with **Hyper‑V** enabled
+- PowerShell running **as Administrator**
+- VyOS Universal Router v1.4.4 VHDX template (recommended) or ISO
 
-## 1.1) One-command Hyper-V build
-Prerequisites:
-- Hyper-V PowerShell module
-- ISO tool: Windows ADK (`oscdimg.exe`) or `mkisofs` / `genisoimage`
+## 1) Create vSwitches
+From repo root:
 
-Command:
 ```powershell
-powershell .\scripts\deploy-hyperv-lab.ps1
+.\scripts\create-hyperv-switches.ps1
 ```
 
-Optional overrides:
+Optional: create external switches bound to real NICs:
+
 ```powershell
-powershell .\scripts\deploy-hyperv-lab.ps1 -MemoryStartupBytes 1GB -CpuCount 1 -RebuildConfigIsos -ReattachDvds
+.\scripts\create-hyperv-switches.ps1 -UseExternalAdapters `
+  -AzureExternalAdapterName "<YOUR AZURE NIC>" `
+  -OnPremUnderlayAdapterName "<YOUR ONPREM NIC>"
 ```
 
-Notes:
-- VM NIC 0 = MGMT (DHCP) on Hyper-V Default Switch.
-- NIC order in configs starts at `eth1` for data plane.
-
-## 1.2) Generate `hw-id` snippets
+## 2) Deploy the lab VMs
 ```powershell
-powershell .\scripts\export-vyos-hwids.ps1 -OutputPath .\artifacts\vyos-hwids.txt
+.\scripts\deploy-hyperv-lab.ps1 -RepoRoot (Get-Location)
 ```
 
-## 2) Apply order (recommended)
-Azure:
-1. External
-2. Outside
-3. Grey
-4. Inside
-5. Developer
-6. Sandbox
+This deploys **11 VMs**:
+- vyos-az-external / edge / core / inside / developer / segment1
+- vyos-onp-edge / core / inside / developer / segment1
 
-On-Prem:
-1. Outside
-2. Grey
-3. Inside
-4. Developer
-5. Sandbox
+NIC order is deterministic:
+- eth0 is always **Default Switch** (VYOS-OOB / DHCP)
+- eth1..ethN follow the switch list per VM definition in the script.
+ - eth0 is always **Default Switch** (VYOS-OOB). In this lab the `configs/*.vyos` files set static OOB addresses (10.255.255.x) for each router.
+ - eth1..ethN follow the switch list per VM definition in the script.
 
-## 3) Validation commands (VyOS)
-### Interfaces + routes
+## 3) Apply configs
+Each config under `configs/**` is a list of VyOS `set ...` commands.
+
+From VyOS:
+```bash
+configure
+load /config/config.boot
+# OR paste the set-commands, then:
+commit
+save
+exit
+```
+
+## 4) Sanity checks (minimum viable confidence)
+
+### A) Interfaces up
+On each router:
 ```bash
 show interfaces
 show ip route
 ```
 
-### Firewall hit counts
-```bash
-show firewall ipv4 name <RULESET>
-```
+### B) DREN enforcement
+From Azure edge (100.255.0.1) to On‑prem edge (100.255.0.2):
+- ✅ `ping 100.255.0.2` should work
+- ✅ `curl https://100.255.0.2` (or 443 test) should work if something listens
+- ✅ DNS tests over UDP/53 if you stand up a resolver
+- ❌ random ports (e.g., TCP/22) should fail across DREN
 
-## 4) Traffic tests (must-pass)
-Site-local (Azure):
-- From AZ SDPC (201.0.1.0/24): reach AZ SDPG (201.0.2.0/24) and AZ SDPT (201.0.3.0/24) on TCP 443/444.
-- From AZ SDPG/SDPT: reach AZ protected subnets (201.1.0.0/24, 201.1.1.0/24, 201.1.2.0/24, 201.1.3.0/24, 201.1.4.0/24) on approved ports only.
-- From AZ AVD (201.0.4.0/24): reach local gateways on TCP 443 / UDP 443 / UDP 53 and AZ SDPC on TCP 443 (optionally UDP 443/53).
+### C) AZ‑WAN closed
+On Azure external:
+- ❌ pinging or reaching anything on AZ‑WAN should fail (eth1 is drop in/out/local)
 
-Site-local (On-Prem):
-- From ONP SDPC (202.0.1.0/24): reach ONP SDPG (202.0.2.0/24) and ONP SDPT (202.0.3.0/24) on TCP 443/444.
-- From ONP SDPG/SDPT: reach ONP protected subnets (202.1.0.0/24, 202.1.1.0/24, 202.1.2.0/24, 202.1.3.0/24, 202.1.4.0/24, 202.1.5.0/24 for HWIL) on approved ports only.
-- From ONP AVD (202.0.4.0/24): reach local gateways on TCP 443 / UDP 443 / UDP 53 and ONP SDPC on TCP 443 (optionally UDP 443/53).
-
-Cross-site / DREN constraints:
-- Azure ↔ On-Prem prefixes should be unreachable (no inter-site routes).
-- DREN interfaces should only pass ICMP, TCP 443, UDP 443, UDP 53.
-
-Negative tests:
-- SDPG ↔ SDPT should fail (both sites).
-- HWIL should only reach SEG (On-Prem).
-
-## 5) Common failure modes
-- Asymmetric routing: ensure both sides have routes for remote prefixes and that Grey points to Outside via DREN.
-- Internet egress blocked: confirm az-out WAN firewall only allows the DOMAIN pools (NAT happens upstream on 10.255.255.0/24).
-- MTU/MSS: if you see intermittent TLS issues, clamp MSS on the DREN link.
-
-## 6) Cleanup
-Remove lab VMs and switches:
+## 5) Tear down
 ```powershell
-powershell .\scripts\remove-hyperv-lab.ps1
+.\scripts\remove-hyperv-lab.ps1
 ```
+
+---
+
+## Validation
+
+Use `docs/Validation-Checklist.md` to prove routing + firewall behavior (DREN restricted, AZ-WAN closed).
 

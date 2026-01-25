@@ -1,0 +1,75 @@
+# edge.vyos (Azure) — Edge
+set system host-name 'az-edge'
+
+set interfaces ethernet eth0 description 'VYOS-OOB'
+set interfaces ethernet eth0 address '10.255.255.12/24'
+
+set interfaces ethernet eth1 description 'AZ-EXT'
+set interfaces ethernet eth1 address '201.254.0.1/24'
+
+set interfaces ethernet eth2 description 'AZ-DREN'
+set interfaces ethernet eth2 address '100.255.0.1/24'
+
+set interfaces ethernet eth3 description 'AZ-CORE'
+set interfaces ethernet eth3 address '201.0.0.2/24'
+
+# Routing
+set protocols static route 0.0.0.0/0 next-hop '201.254.0.2'
+set protocols static route 201.0.0.0/14 next-hop '201.0.0.1'
+set protocols static route 201.255.0.0/24 next-hop '201.254.0.2'
+
+# DREN is the ONLY restricted transit: allow ICMP, TCP/UDP 443, UDP 53 (stateful); drop everything else.
+
+# Custom chain for forwarding/router-generated traffic constrained to DREN policy
+set firewall ipv4 name DREN-ALLOW default-action 'drop'
+set firewall ipv4 name DREN-ALLOW rule 10 action 'accept'
+set firewall ipv4 name DREN-ALLOW rule 10 state established
+set firewall ipv4 name DREN-ALLOW rule 20 action 'accept'
+set firewall ipv4 name DREN-ALLOW rule 20 state related
+set firewall ipv4 name DREN-ALLOW rule 30 action 'accept'
+set firewall ipv4 name DREN-ALLOW rule 30 protocol 'icmp'
+set firewall ipv4 name DREN-ALLOW rule 40 action 'accept'
+set firewall ipv4 name DREN-ALLOW rule 40 protocol 'tcp'
+set firewall ipv4 name DREN-ALLOW rule 40 destination port '443'
+set firewall ipv4 name DREN-ALLOW rule 50 action 'accept'
+set firewall ipv4 name DREN-ALLOW rule 50 protocol 'udp'
+set firewall ipv4 name DREN-ALLOW rule 50 destination port '443'
+set firewall ipv4 name DREN-ALLOW rule 60 action 'accept'
+set firewall ipv4 name DREN-ALLOW rule 60 protocol 'udp'
+set firewall ipv4 name DREN-ALLOW rule 60 destination port '53'
+
+# Custom chain for router-local traffic received on DREN
+set firewall ipv4 name DREN-LOCAL default-action 'drop'
+set firewall ipv4 name DREN-LOCAL rule 10 action 'accept'
+set firewall ipv4 name DREN-LOCAL rule 10 state established
+set firewall ipv4 name DREN-LOCAL rule 20 action 'accept'
+set firewall ipv4 name DREN-LOCAL rule 20 state related
+set firewall ipv4 name DREN-LOCAL rule 30 action 'accept'
+set firewall ipv4 name DREN-LOCAL rule 30 protocol 'icmp'
+
+# Base chains stay permissive, but DREN traffic is jumped into the restricted chains
+set firewall ipv4 input filter default-action 'accept'
+set firewall ipv4 output filter default-action 'accept'
+set firewall ipv4 forward filter default-action 'accept'
+
+# Input: packets *arriving* on DREN to router-local services
+set firewall ipv4 input filter rule 100 inbound-interface name 'eth2'
+set firewall ipv4 input filter rule 100 action 'jump'
+set firewall ipv4 input filter rule 100 jump-target 'DREN-LOCAL'
+
+# Forward: packets forwarded that *arrive from* or *exit to* DREN
+set firewall ipv4 forward filter rule 100 inbound-interface name 'eth2'
+set firewall ipv4 forward filter rule 100 action 'jump'
+set firewall ipv4 forward filter rule 100 jump-target 'DREN-ALLOW'
+set firewall ipv4 forward filter rule 110 outbound-interface name 'eth2'
+set firewall ipv4 forward filter rule 110 action 'jump'
+set firewall ipv4 forward filter rule 110 jump-target 'DREN-ALLOW'
+
+# Output: router-originated traffic that *exits to* DREN
+set firewall ipv4 output filter rule 100 outbound-interface name 'eth2'
+set firewall ipv4 output filter rule 100 action 'jump'
+set firewall ipv4 output filter rule 100 jump-target 'DREN-ALLOW'
+
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'

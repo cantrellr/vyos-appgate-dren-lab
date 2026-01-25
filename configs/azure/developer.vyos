@@ -1,42 +1,21 @@
-configure
-set system host-name 'az-dev'
+# developer.vyos (Azure) — Protected Developer (Spoke)
+set system host-name 'az-developer'
 
-set interfaces ethernet eth0 description 'MGMT'
-set interfaces ethernet eth0 address 'dhcp'
+set interfaces ethernet eth0 description 'VYOS-OOB'
+set interfaces ethernet eth0 address '10.255.255.15/24'
 
-set interfaces ethernet eth1 description 'UPLINK-SDPC'
-set interfaces ethernet eth1 address '201.0.1.3/24'
+set interfaces ethernet eth1 description 'AZ-CORE'
+set interfaces ethernet eth1 address '201.0.0.4/24'
 
-set interfaces ethernet eth2 description 'DEV'
-set interfaces ethernet eth2 address '201.1.2.1/24'
+set interfaces ethernet eth2 description 'AZ-DEV'
+set interfaces ethernet eth2 address '201.2.0.1/24'
 
-set interfaces ethernet eth3 description 'DEVSVC'
-set interfaces ethernet eth3 address '201.1.3.1/24'
+set interfaces ethernet eth3 description 'AZ-DEVSVC'
+set interfaces ethernet eth3 address '201.2.1.1/24'
 
-set protocols static route '0.0.0.0/0' next-hop '201.0.1.1'
+# Default route toward hub core.vyos
+set protocols static route 0.0.0.0/0 next-hop '201.0.0.1'
 
-
-# Restrict management services to MGMT only
-set firewall ipv4 name MGMT-DENY default-action 'accept'
-set firewall ipv4 name MGMT-DENY rule 10 action 'drop'
-set firewall ipv4 name MGMT-DENY rule 10 protocol 'tcp'
-set firewall ipv4 name MGMT-DENY rule 10 destination port '22'
-set firewall ipv4 name MGMT-DENY rule 20 action 'drop'
-set firewall ipv4 name MGMT-DENY rule 20 protocol 'tcp'
-set firewall ipv4 name MGMT-DENY rule 20 destination port '443,8443'
-
-# Mgmt restriction wiring (VyOS 1.4+): match inbound interface(s) and jump to MGMT-DENY
-set firewall group interface-group DATA-PLANE description 'Non-MGMT interfaces (blocked mgmt ports)'
-set firewall group interface-group DATA-PLANE interface 'eth1'
-set firewall group interface-group DATA-PLANE interface 'eth2'
-set firewall group interface-group DATA-PLANE interface 'eth3'
-set firewall ipv4 input filter default-action 'accept'
-set firewall ipv4 input filter rule 10 action 'jump'
-set firewall ipv4 input filter rule 10 inbound-interface group 'DATA-PLANE'
-set firewall ipv4 input filter rule 10 jump-target 'MGMT-DENY'
-
-# Apply the mgmt-deny filter only to the data-plane interfaces
-commit
-save
-exit
-
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'

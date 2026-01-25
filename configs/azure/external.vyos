@@ -1,42 +1,47 @@
-configure
-set system host-name 'az-ext'
+# external.vyos (Azure) — Edge-lite
+set system host-name 'az-external'
 
-# Management (DHCP via Hyper-V Default Switch)
-set interfaces ethernet eth0 description 'MGMT'
-set interfaces ethernet eth0 address 'dhcp'
+set interfaces ethernet eth0 description 'VYOS-OOB'
+set interfaces ethernet eth0 address '10.255.255.11/24'
 
-# External and WAN uplinks
-set interfaces ethernet eth1 description 'EXT'
+set interfaces ethernet eth1 description 'AZ-WAN'
 set interfaces ethernet eth1 address '201.255.0.2/24'
 
-set interfaces ethernet eth2 description 'WAN'
+set interfaces ethernet eth2 description 'AZ-EXT'
 set interfaces ethernet eth2 address '201.254.0.2/24'
 
-# Default route to Internet
-set protocols static route '0.0.0.0/0' next-hop '201.255.0.1'
+# Routing
+set protocols static route 0.0.0.0/0 next-hop '201.255.0.1'
+set protocols static route 201.0.0.0/14 next-hop '201.254.0.1'
+set protocols static route 100.255.0.0/24 next-hop '201.254.0.1'
 
-# Drop management services on data-plane interfaces
+# AZ-WAN is CLOSED/RESTRICTED: drop all traffic to/from/router-local on eth1
 
-# Restrict management services to MGMT only
-set firewall ipv4 name MGMT-DENY default-action 'accept'
-set firewall ipv4 name MGMT-DENY rule 10 action 'drop'
-set firewall ipv4 name MGMT-DENY rule 10 protocol 'tcp'
-set firewall ipv4 name MGMT-DENY rule 10 destination port '22'
-set firewall ipv4 name MGMT-DENY rule 20 action 'drop'
-set firewall ipv4 name MGMT-DENY rule 20 protocol 'tcp'
-set firewall ipv4 name MGMT-DENY rule 20 destination port '443,8443'
+set firewall ipv4 name AZWAN-DROP default-action 'drop'
 
-# Mgmt restriction wiring (VyOS 1.4+): match inbound interface(s) and jump to MGMT-DENY
-set firewall group interface-group DATA-PLANE description 'Non-MGMT interfaces (blocked mgmt ports)'
-set firewall group interface-group DATA-PLANE interface 'eth1'
-set firewall group interface-group DATA-PLANE interface 'eth2'
+# Base chains stay permissive, but any traffic touching AZ-WAN is dropped
 set firewall ipv4 input filter default-action 'accept'
-set firewall ipv4 input filter rule 10 action 'jump'
-set firewall ipv4 input filter rule 10 inbound-interface group 'DATA-PLANE'
-set firewall ipv4 input filter rule 10 jump-target 'MGMT-DENY'
+set firewall ipv4 output filter default-action 'accept'
+set firewall ipv4 forward filter default-action 'accept'
 
-# Apply the mgmt-deny filter only to the data-plane interfaces
-commit
-save
-exit
+# Input: packets arriving on AZ-WAN to router-local services
+set firewall ipv4 input filter rule 50 inbound-interface name 'eth1'
+set firewall ipv4 input filter rule 50 action 'jump'
+set firewall ipv4 input filter rule 50 jump-target 'AZWAN-DROP'
 
+# Forward: packets forwarded that arrive from or exit to AZ-WAN
+set firewall ipv4 forward filter rule 50 inbound-interface name 'eth1'
+set firewall ipv4 forward filter rule 50 action 'jump'
+set firewall ipv4 forward filter rule 50 jump-target 'AZWAN-DROP'
+set firewall ipv4 forward filter rule 60 outbound-interface name 'eth1'
+set firewall ipv4 forward filter rule 60 action 'jump'
+set firewall ipv4 forward filter rule 60 jump-target 'AZWAN-DROP'
+
+# Output: router-originated traffic exiting via AZ-WAN
+set firewall ipv4 output filter rule 50 outbound-interface name 'eth1'
+set firewall ipv4 output filter rule 50 action 'jump'
+set firewall ipv4 output filter rule 50 jump-target 'AZWAN-DROP'
+
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'

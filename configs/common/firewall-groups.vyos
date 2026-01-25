@@ -1,16 +1,15 @@
-# Common firewall port-groups for Appgate + protected resources
-# Apply on BOTH Grey routers.
+# Common firewall port-groups (optional)
+# These are convenience objects if/when you start building least‑privilege rulesets.
+# Current lab posture is: default allow, except DREN (restricted) and AZ‑WAN (closed).
 
-configure
-
-# Appgate ports
+# AppGate (typical)
 set firewall group port-group APPGATE_CLIENT_TCP port '443'
 set firewall group port-group APPGATE_CLIENT_UDP port '443'
 set firewall group port-group APPGATE_DNS_UDP port '53'
 set firewall group port-group APPGATE_CTRL_TCP port '444'
 set firewall group port-group APPGATE_ADMIN_TCP port '8443'
 
-# Protected resource ports (TCP)
+# Protected resource ports (sample)
 set firewall group port-group PROTECTED_TCP port '22'
 set firewall group port-group PROTECTED_TCP port '80'
 set firewall group port-group PROTECTED_TCP port '443'
@@ -21,10 +20,4 @@ set firewall group port-group PROTECTED_TCP port '1521'
 set firewall group port-group PROTECTED_TCP port '3306'
 set firewall group port-group PROTECTED_TCP port '5432'
 set firewall group port-group PROTECTED_TCP port '27017'
-
-# Optional RDP UDP (performance)
 set firewall group port-group PROTECTED_UDP port '3389'
-
-commit
-save
-exit
