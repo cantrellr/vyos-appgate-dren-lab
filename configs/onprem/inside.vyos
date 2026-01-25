@@ -2,7 +2,7 @@
 set system host-name 'onp-inside'
 
 set interfaces ethernet eth0 description 'VYOS-OOB'
-set interfaces ethernet eth0 address '10.255.255.19/24'
+set interfaces ethernet eth0 address '10.255.255.24/24'
 
 set interfaces ethernet eth1 description 'ONP-CORE'
 set interfaces ethernet eth1 address '202.0.0.3/24'

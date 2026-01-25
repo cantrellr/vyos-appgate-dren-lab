@@ -89,7 +89,7 @@ The following per-router tables are generated from the `configs/*.vyos` files. T
 
 | Interface | Interface name | Address (DHCP/Static) | Default route (next-hop) |
 | --- | --- | --- | --- |
-| eth0 | VYOS-OOB | 10.255.255.17/24 (static) | 202.254.0.2 |
+| eth0 | VYOS-OOB | 10.255.255.22/24 (static) | 202.254.0.2 |
 | eth1 | ONP-EXT | 202.254.0.1/24 (static) | |
 | eth2 | ONP-DREN | 100.255.0.2/24 (static) | |
 | eth3 | ONP-CORE | 202.0.0.2/24 (static) | |
@@ -99,7 +99,7 @@ The following per-router tables are generated from the `configs/*.vyos` files. T
 
 | Interface | Interface name | Address (DHCP/Static) | Default route (next-hop) |
 | --- | --- | --- | --- |
-| eth0 | VYOS-OOB | 10.255.255.18/24 (static) | 202.0.0.2 |
+| eth0 | VYOS-OOB | 10.255.255.23/24 (static) | 202.0.0.2 |
 | eth1 | ONP-CORE | 202.0.0.1/24 (static) | |
 | eth2 | ONP-SDPC | 202.0.1.1/24 (static) | |
 | eth3 | ONP-SDPG | 202.0.2.1/24 (static) | |
@@ -110,7 +110,7 @@ The following per-router tables are generated from the `configs/*.vyos` files. T
 
 | Interface | Interface name | Address (DHCP/Static) | Default route (next-hop) |
 | --- | --- | --- | --- |
-| eth0 | VYOS-OOB | 10.255.255.19/24 (static) | 202.0.0.1 |
+| eth0 | VYOS-OOB | 10.255.255.24/24 (static) | 202.0.0.1 |
 | eth1 | ONP-CORE | 202.0.0.3/24 (static) | |
 | eth2 | ONP-DOMAIN | 202.1.0.1/24 (static) | |
 | eth3 | ONP-DOMSVC | 202.1.1.1/24 (static) | |
@@ -121,7 +121,7 @@ The following per-router tables are generated from the `configs/*.vyos` files. T
 
 | Interface | Interface name | Address (DHCP/Static) | Default route (next-hop) |
 | --- | --- | --- | --- |
-| eth0 | VYOS-OOB | 10.255.255.20/24 (static) | 202.0.0.1 |
+| eth0 | VYOS-OOB | 10.255.255.25/24 (static) | 202.0.0.1 |
 | eth1 | ONP-CORE | 202.0.0.4/24 (static) | |
 | eth2 | ONP-DEV | 202.2.0.1/24 (static) | |
 | eth3 | ONP-DEVSVC | 202.2.1.1/24 (static) | |
@@ -131,7 +131,7 @@ The following per-router tables are generated from the `configs/*.vyos` files. T
 
 | Interface | Interface name | Address (DHCP/Static) | Default route (next-hop) |
 | --- | --- | --- | --- |
-| eth0 | VYOS-OOB | 10.255.255.21/24 (static) | 202.0.0.1 |
+| eth0 | VYOS-OOB | 10.255.255.26/24 (static) | 202.0.0.1 |
 | eth1 | ONP-CORE | 202.0.0.5/24 (static) | |
 | eth2 | ONP-SEG | 202.3.0.1/24 (static) | |
 | eth3 | ONP-HWIL | 202.3.1.1/24 (static) | |

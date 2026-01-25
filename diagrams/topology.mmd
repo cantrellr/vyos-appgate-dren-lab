@@ -1,64 +1,115 @@
-%% eth0 = VYOS-OOB via Hyper-V Default Switch (DHCP) for all routers
-flowchart LR
-  MGMT(("VYOS-OOB / Default Switch<br>DHCP / eth0"))
+flowchart TB
 
-  %% Azure
-  subgraph AZ["Azure (201.x)"]
-    AZ_EXT["external.vyos<br>AZ-WAN eth1 201.255.0.2/24<br>AZ-EXT eth2 201.254.0.2/24<br>AZ-WAN CLOSED"]
-    AZ_EDGE["edge.vyos<br>AZ-EXT eth1 201.254.0.1/24<br>AZ-DREN eth2 100.255.0.1/24<br>AZ-CORE eth3 201.0.0.2/24"]
-    AZ_CORE["core.vyos<br>AZ-CORE eth1 201.0.0.1/24<br>SDPC 201.0.1.1/24<br>SDPG 201.0.2.1/24<br>SDPT 201.0.3.1/24"]
-    AZ_INSIDE["inside.vyos<br>AZ-CORE 201.0.0.3/24<br>DOMAIN 201.1.0.1/24<br>DOMSVC 201.1.1.1/24<br>AVD 201.1.2.1/24"]
-    AZ_DEV["developer.vyos<br>AZ-CORE 201.0.0.4/24<br>DEV 201.2.0.1/24<br>DEVSVC 201.2.1.1/24"]
-    AZ_SEG1["segment1.vyos<br>AZ-CORE 201.0.0.5/24<br>SEG 201.3.0.1/24<br>HWIL 201.3.1.1/24"]
+%% ============================
+%% AZURE (TOP)
+%% ============================
+subgraph AZ["Azure (201.x)"]
+  direction TB
+
+  AZ_TAG["Azure Site (201.x)"]
+
+  AZ_EXT["AZ-EXTERNAL<br><br>AZ-WAN<br>eth1: 201.255.0.2/24<br><br>AZ-EXT<br>eth2: 201.254.0.1/24"]
+  AZ_EDGE["AZ-EDGE<br><br>AZ-EXT<br>eth1: 201.254.0.1/24<br><br>AZ-DREN<br>eth2: 100.255.0.1/24<br><br>AZ-CORE<br>eth3: 201.0.0.2/24"]
+  AZ_CORE["AZ-CORE<br><br>AZ-CORE<br>eth1: 201.0.0.1/24<br><br>SDPC<br>eth2: 201.0.1.1/24<br><br>SDPG<br>eth3: 201.0.2.1/24<br><br>SDPT<br>eth4: 201.0.3.1/24"]
+
+  AZ_EXT --> AZ_EDGE -->|SDP Protocols<br>udp 53 & tcp/udp 443| AZ_CORE
+
+  subgraph AZ_DOWN["Protected Resources"]
+    direction LR
+    AZ_INSIDE["AZ-INSIDE<br><br>AZ-CORE<br>eth1: 201.0.0.3/24<br><br>DOMAIN<br>eth2: 201.1.0.1/24<br><br>DOMSVC<br>eth3: 201.1.1.1/24<br><br>AVD<br>eth4: 201.1.2.1/24"]
+    AZ_DEV["AZ-DEVELOPER<br><br>AZ-CORE<br>eth1: 201.0.0.4/24<br><br>DEV<br>eth2: 201.2.0.1/24<br><br>DEVSVC<br>eth3: 201.2.1.1/24"]
+    AZ_SEG1["AZ-SEGMENT1<br><br>AZ-CORE<br>eth1: 201.0.0.5/24<br><br>SEG<br>eth2: 201.3.0.1/24<br><br>HWIL<br>eth3: 201.3.1.1/24"]
   end
 
-  %% On-prem
-  subgraph ONP["On-Prem (202.x)"]
-    ONP_EDGE["edge.vyos<br>ONP-EXT eth1 202.254.0.1/24<br>ONP-DREN eth2 100.255.0.2/24<br>ONP-CORE eth3 202.0.0.2/24"]
-    ONP_CORE["core.vyos<br>ONP-CORE eth1 202.0.0.1/24<br>SDPC 202.0.1.1/24<br>SDPG 202.0.2.1/24<br>SDPT 202.0.3.1/24"]
-    ONP_INSIDE["inside.vyos<br>ONP-CORE 202.0.0.3/24<br>DOMAIN 202.1.0.1/24<br>DOMSVC 202.1.1.1/24<br>AVD 202.1.2.1/24"]
-    ONP_DEV["developer.vyos<br>ONP-CORE 202.0.0.4/24<br>DEV 202.2.0.1/24<br>DEVSVC 202.2.1.1/24"]
-    ONP_SEG1["segment1.vyos<br>ONP-CORE 202.0.0.5/24<br>SEG 202.3.0.1/24<br>HWIL 202.3.1.1/24"]
+  AZ_CORE -->|inside| AZ_INSIDE
+  AZ_CORE -->|developer| AZ_DEV
+  AZ_CORE -->|segment1| AZ_SEG1
+
+  %% LANs as rectangles
+  AZ_DOMAIN_NET["DOMAIN<br>201.1.0.0/24"]
+  AZ_DOMSVC_NET["DOMSVC<br>201.1.1.0/24"]
+  AZ_AVD_NET["AVD<br>201.1.2.0/24"]
+  AZ_DEV_NET["DEV<br>201.2.0.0/24"]
+  AZ_DEVSVC_NET["DEVSVC<br>201.2.1.0/24"]
+  AZ_SEG_NET["SEG<br>201.3.0.0/24"]
+  AZ_HWIL_NET["HWIL<br>201.3.1.0/24"]
+
+  AZ_INSIDE -->|DOMAIN| AZ_DOMAIN_NET
+  AZ_INSIDE -->|DOMSVC| AZ_DOMSVC_NET
+  AZ_INSIDE -->|AVD| AZ_AVD_NET
+  AZ_DEV -->|DEV| AZ_DEV_NET
+  AZ_DEV -->|DEVSVC| AZ_DEVSVC_NET
+  AZ_SEG1 -->|SEG| AZ_SEG_NET
+  AZ_SEG1 -->|HWIL| AZ_HWIL_NET
+end
+
+%% ============================
+%% DREN (Middle)
+%% ============================
+DREN["DREN<br>100.255.0.0/24<br><br>Allow SDP Protocols<br>ICMP, 53/UDP, 443/TCP+UDP"]
+
+%% ============================
+%% ON-PREM (BOTTOM)
+%% ============================
+subgraph ONP["On-Prem (202.x)"]
+  direction TB
+
+  ONP_TAG["On-Prem Site (202.x)"]
+
+  ONP_EDGE["ONP-EDGE<br><br>ONP-EXT<br>eth1: 202.254.0.1/24<br><br>ONP-DREN<br>eth2: 100.255.0.2/24<br><br>ONP-CORE<br>eth3: 202.0.0.2/24"]
+  ONP_CORE["ONP-CORE<br><br>ONP-CORE<br>eth1: 202.0.0.1/24<br><br>SDPC<br>eth2: 202.0.1.1/24<br><br>SDPG<br>eth3: 202.0.2.1/24<br><br>SDPT<br>eth4: 202.0.3.1/24"]
+
+  ONP_EDGE -->|SDP Protocols<br>udp 53 & tcp/udp 443| ONP_CORE
+
+  subgraph ONP_DOWN["Protected Resources"]
+    direction LR
+    ONP_INSIDE["ONP-INSIDE<br><br>ONP-CORE<br>eth1: 202.0.0.3/24<br><br>DOMAIN<br>eth2: 202.1.0.1/24<br><br>DOMSVC<br>eth3: 202.1.1.1/24<br><br>AVD<br>eth4: 202.1.2.1/24"]
+    ONP_DEV["ONP-DEVELOPER<br><br>ONP-CORE<br>eth1: 202.0.0.4/24<br><br>DEV<br>eth2: 202.2.0.1/24<br><br>DEVSVC<br>eth3: 202.2.1.1/24"]
+    ONP_SEG1["ONP-SEGMENT1<br><br>ONP-CORE<br>eth1: 202.0.0.5/24<br><br>SEG<br>eth2: 202.3.0.1/24<br><br>HWIL<br>eth3: 202.3.1.1/24"]
   end
 
-  %% Networks
-  AZWAN(("AZ-WAN<br>201.255.0.0/24"))
-  AZEXT(("AZ-EXT<br>201.254.0.0/24"))
-  AZCORENET(("AZ-CORE<br>201.0.0.0/24"))
-  ONPEXT(("ONP-EXT<br>202.254.0.0/24"))
-  ONPCORENET(("ONP-CORE<br>202.0.0.0/24"))
-  DREN(("DREN<br>100.255.0.0/24<br>ALLOW: ICMP, 443/TCP+UDP, 53/UDP"))
+  ONP_CORE -->|inside| ONP_INSIDE
+  ONP_CORE -->|developer| ONP_DEV
+  ONP_CORE -->|segment1| ONP_SEG1
 
-  %% mgmt
-  MGMT --- AZ_EXT
-  MGMT --- AZ_EDGE
-  MGMT --- AZ_CORE
-  MGMT --- AZ_INSIDE
-  MGMT --- AZ_DEV
-  MGMT --- AZ_SEG1
-  MGMT --- ONP_EDGE
-  MGMT --- ONP_CORE
-  MGMT --- ONP_INSIDE
-  MGMT --- ONP_DEV
-  MGMT --- ONP_SEG1
+  %% LANs as rectangles
+  ONP_DOMAIN_NET["DOMAIN<br>202.1.0.0/24"]
+  ONP_DOMSVC_NET["DOMSVC<br>202.1.1.0/24"]
+  ONP_AVD_NET["AVD<br>202.1.2.0/24"]
+  ONP_DEV_NET["DEV<br>202.2.0.0/24"]
+  ONP_DEVSVC_NET["DEVSVC<br>202.2.1.0/24"]
+  ONP_SEG_NET["SEG<br>202.3.0.0/24"]
+  ONP_HWIL_NET["HWIL<br>202.3.1.0/24"]
 
-  %% Azure links
-  AZWAN --- AZ_EXT
-  AZEXT --- AZ_EXT
-  AZEXT --- AZ_EDGE
-  AZCORENET --- AZ_EDGE
-  AZCORENET --- AZ_CORE
-  AZCORENET --- AZ_INSIDE
-  AZCORENET --- AZ_DEV
-  AZCORENET --- AZ_SEG1
+  ONP_INSIDE -->|DOMAIN| ONP_DOMAIN_NET
+  ONP_INSIDE -->|DOMSVC| ONP_DOMSVC_NET
+  ONP_INSIDE -->|AVD| ONP_AVD_NET
+  ONP_DEV -->|DEV| ONP_DEV_NET
+  ONP_DEV -->|DEVSVC| ONP_DEVSVC_NET
+  ONP_SEG1 -->|SEG| ONP_SEG_NET
+  ONP_SEG1 -->|HWIL| ONP_HWIL_NET
+end
 
-  %% On-prem links
-  ONPEXT --- ONP_EDGE
-  ONPCORENET --- ONP_EDGE
-  ONPCORENET --- ONP_CORE
-  ONPCORENET --- ONP_INSIDE
-  ONPCORENET --- ONP_DEV
-  ONPCORENET --- ONP_SEG1
+%% DREN links (dashed)
+AZ_EDGE -.->|SDP Protocols<br>udp 53 & tcp/udp 443| DREN -.->|SDP Protocols<br>udp 53 & tcp/udp 443| ONP_EDGE
 
-  %% DREN
-  AZ_EDGE --- DREN --- ONP_EDGE
+%% ============================
+%% STYLES
+%% ============================
+classDef azRouter fill:#e8f2ff,stroke:#1f4b99,stroke-width:2px;
+classDef onpRouter fill:#fff3e6,stroke:#9a5a00,stroke-width:2px;
+classDef netNode fill:#f3f4f6,stroke:#6b7280,stroke-width:1px;
+classDef drenNode fill:#ffe9e9,stroke:#e11d48,stroke-width:3px;
+classDef siteTagAz fill:#dbeafe,stroke:#1f4b99,stroke-width:2px;
+classDef siteTagOnp fill:#ffedd5,stroke:#9a5a00,stroke-width:2px;
+
+class AZ_TAG siteTagAz;
+class ONP_TAG siteTagOnp;
+
+class AZ_EXT,AZ_EDGE,AZ_CORE,AZ_INSIDE,AZ_DEV,AZ_SEG1 azRouter;
+class ONP_EDGE,ONP_CORE,ONP_INSIDE,ONP_DEV,ONP_SEG1 onpRouter;
+
+class AZ_DOMAIN_NET,AZ_DOMSVC_NET,AZ_AVD_NET,AZ_DEV_NET,AZ_DEVSVC_NET,AZ_SEG_NET,AZ_HWIL_NET netNode;
+class ONP_DOMAIN_NET,ONP_DOMSVC_NET,ONP_AVD_NET,ONP_DEV_NET,ONP_DEVSVC_NET,ONP_SEG_NET,ONP_HWIL_NET netNode;
+
+class DREN drenNode;
