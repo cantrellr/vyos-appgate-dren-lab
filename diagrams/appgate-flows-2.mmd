@@ -1,25 +1,32 @@
 flowchart TB
   BYOD[External BYOD User]
   AVD[Azure Virtual<br>Desktop<br>Appgate Client<br>201.1.2.0/24<br>202.1.2.0/24]
-
   CTRL[SDP Controller<br>201.0.1.0/24<br>202.0.1.0/24]
-  GW1[SDP Gateway<br>201.0.2.0/24<br>202.0.2.0/24]
-  GW2[SDP Connector<br>201.0.3.0/24<br>202.0.3.0/24]
 
-  DOMAIN[DOMAIN<br>201.1.0.0/24<br>202.1.0.0/24]
-  DOMSVC[DOMAIN SERVICES<br>201.1.1.0/24<br>202.1.1.0/24]
-  DEV[DEV<br>201.2.0.0/24<br>202.2.0.0/24]
-  DEVSVC[DEV SERVICES<br>201.2.1.0/24<br>202.2.1.0/24]
-  SEG[SEG<br>201.3.0.0/24<br>202.3.0.0/24]
-  HWIL[HWIL<br>201.3.1.0/24<br>202.3.1.0/24]
+  subgraph DATA_PLANE[AppGate SDP Data Plane]
+    direction LR
+    subgraph GW2_LANE[Protected Services]
+      direction TB
+      GW2[SDP Connector<br>201.0.3.0/24<br>202.0.3.0/24]
+      DOMSVC[DOMAIN SERVICES<br>201.1.1.0/24<br>202.1.1.0/24]
+      DEVSVC[DEV SERVICES<br>201.2.1.0/24<br>202.2.1.0/24]
+      HWIL[HWIL<br>201.3.1.0/24<br>202.3.1.0/24]
+    end
+    subgraph GW1_LANE[Protected Resources]
+      direction TB
+      GW1[SDP Gateway<br>201.0.2.0/24<br>202.0.2.0/24]
+      DOMAIN[DOMAIN<br>201.1.0.0/24<br>202.1.0.0/24]
+      DEV[DEV<br>201.2.0.0/24<br>202.2.0.0/24]
+      SEG[SEG<br>201.3.0.0/24<br>202.3.0.0/24]
+    end
+  end
 
   BYOD -->|Internet| AVD
-  CTRL -->|tcp/udp 443 + udp 53| GW2
+  AVD -->|tcp/udp 443 + udp 53| CTRL
+  AVD -->|tcp/udp 443 + udp 53| GW2
   CTRL -->|tcp/udp 443 + udp 53| GW1
   AVD -->|tcp/udp 443 + udp 53| GW1
-  AVD -->|tcp/udp 443 + udp 53| GW2
-  AVD -->|tcp/udp 443 + udp 53| CTRL
-
+  CTRL -->|tcp/udp 443 + udp 53| GW2
 
   GW1 -->|All Ports| DOMAIN
   GW1 -->|All Ports| DEV
@@ -29,18 +36,18 @@ flowchart TB
   GW2 -->|All Ports| DEVSVC
   GW2 -->|All Ports| HWIL
 
-  class AZ-CTRL,AZ-GW1,AZ-GW2 sdp
+  class CTRL,GW1,GW2 sdp
   classDef sdp fill:#d7f3ff,stroke:#1f7ea8,stroke-width:2px,color:#0b3d59
 
-  class AZ-BYOD enduser
+  class BYOD enduser
   classDef enduser fill:#ffe9d6,stroke:#e07a2c,stroke-width:2px,color:#5a2a00
 
-  class AZ-AVD client
+  class AVD client
   classDef client fill:#e6f7e6,stroke:#2f8f2f,stroke-width:2px,color:#0f3d0f
 
-  class AZ-DOMAIN,AZ-DEV,AZ-SEG sdpg
+  class DOMAIN,DEV,SEG sdpg
   classDef sdpg fill:#f0e6ff,stroke:#6f3cc3,stroke-width:2px,color:#2a0e5a
 
-  class AZ-DOMSVC,AZ-DEVSVC,AZ-HWIL sdpt
+  class DOMSVC,DEVSVC,HWIL sdpt
   classDef sdpt fill:#f1f700,stroke:#6f3cc3,stroke-width:2px,color:#2a0e5a
  
