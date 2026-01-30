@@ -16,6 +16,7 @@ set interfaces ethernet eth3 address '202.0.0.2/24'
 # Routing
 set protocols static route 0.0.0.0/0 next-hop '202.254.0.2'
 set protocols static route 202.0.0.0/14 next-hop '202.0.0.1'
+set protocols static route 201.0.0.0/14 next-hop '100.255.0.1'
 
 # DREN is the ONLY restricted transit: allow ICMP, TCP/UDP 443, UDP 53 (stateful); drop everything else.
 
