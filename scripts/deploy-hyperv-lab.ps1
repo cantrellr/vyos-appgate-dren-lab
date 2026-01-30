@@ -10,7 +10,7 @@ param(
     [string]$AzureExternalAdapterName,
     [string]$OnPremUnderlayAdapterName,
     [string]$VmRoot,
-    [string]$VhdRoot = 'D:\Production_Data\HyperV\Virtual Hard Disks\vyos-appgate-dren-lab-vhdx',
+    [string]$VhdRoot = 'E:\Virtual Hard Disks\vyos-appgate-dren-lab-vhdx',
     [switch]$CreateSwitches = $true,
     [switch]$CreateVms = $true,
     [switch]$CreateConfigIsos = $true,
@@ -22,7 +22,7 @@ param(
     [ValidateSet('ConfigOnly','NoCloud')]
     [string]$ConfigIsoMode = 'ConfigOnly',
     [switch]$UseVhdTemplate,
-    [string]$VhdTemplatePath = 'D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx',
+    [string]$VhdTemplatePath = 'E:\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx',
     [ValidateSet(0,1,2)]
     [int]$VmGeneration = 0,
     [bool]$SecureBootEnabled = $false,
