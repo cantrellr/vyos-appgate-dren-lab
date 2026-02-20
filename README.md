@@ -168,11 +168,15 @@ These are **paste‑ready `set ...` commands**. Prefer editing the `configs/*.vy
 
 ## Hyper‑V deployment
 
-Scripts are in `scripts/`:
+Scripts are in `scripts/`. See the per-script technical READMEs for in-depth behavior, invocation, and examples:
 
-- `create-hyperv-switches.ps1` — creates the vSwitches used by the lab
-- `deploy-hyperv-lab.ps1` — creates 11 VMs and attaches NICs in **eth0..ethN order**
-- `remove-hyperv-lab.ps1` — tears down the lab
+- `create-hyperv-switches.ps1` — creates the vSwitches used by the lab; details: [scripts/create-hyperv-switches.md](scripts/create-hyperv-switches.md)
+- `deploy-hyperv-lab.ps1` — creates 11 VMs and attaches NICs in **eth0..ethN order**; details: [scripts/deploy-hyperv-lab.md](scripts/deploy-hyperv-lab.md)
+- `remove-hyperv-lab.ps1` — tears down the lab; details: [scripts/remove-hyperv-lab.md](scripts/remove-hyperv-lab.md)
+- `bootstrap-vyos.ps1` — builds config/cloud-init ISOs and can attach them to VMs; details: [scripts/bootstrap-vyos.md](scripts/bootstrap-vyos.md)
+- `export-vyos-hwids.ps1` — extract VM MAC addresses and render VyOS `hw-id` lines; details: [scripts/export-vyos-hwids.md](scripts/export-vyos-hwids.md)
+- `apply-config.sh` — simple SSH-based config apply helper; details: [scripts/apply-config.md](scripts/apply-config.md)
+- `validate-dren.sh` — on-box DREN policy validation helper; details: [scripts/validate-dren.md](scripts/validate-dren.md)
 
 See [docs/Runbook.md](docs/Runbook.md) for the exact commands and validation checks.
 
