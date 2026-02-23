@@ -1,0 +1,69 @@
+﻿# vyos-az-core
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:34'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:35'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:36'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:37'
+set interfaces ethernet eth4 hw-id '00:15:5d:0e:3d:38'
+
+# vyos-az-developer
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:3e'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:3f'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:40'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:41'
+
+# vyos-az-edge
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:30'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:31'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:32'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:33'
+
+# vyos-az-external
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:2d'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:2e'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:2f'
+
+# vyos-az-inside
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:39'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:3a'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:3b'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:3c'
+set interfaces ethernet eth4 hw-id '00:15:5d:0e:3d:3d'
+
+# vyos-az-segment1
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:42'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:43'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:44'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:45'
+
+# vyos-onp-core
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:4a'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:4b'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:4c'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:4d'
+set interfaces ethernet eth4 hw-id '00:15:5d:0e:3d:4e'
+
+# vyos-onp-developer
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:54'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:55'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:56'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:57'
+
+# vyos-onp-edge
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:46'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:47'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:48'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:49'
+
+# vyos-onp-inside
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:4f'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:50'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:51'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:52'
+set interfaces ethernet eth4 hw-id '00:15:5d:0e:3d:53'
+
+# vyos-onp-segment1
+set interfaces ethernet eth0 hw-id '00:15:5d:0e:3d:58'
+set interfaces ethernet eth1 hw-id '00:15:5d:0e:3d:59'
+set interfaces ethernet eth2 hw-id '00:15:5d:0e:3d:5a'
+set interfaces ethernet eth3 hw-id '00:15:5d:0e:3d:5b'
+
