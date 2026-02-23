@@ -227,38 +227,29 @@ Starting recommendations:
 
 ---
 
-# Mermaid Diagrams
-
 ## A) Overview Architecture
 
 ```mermaid
 flowchart TB
-  U[User] --> KC[Keycloak (Azure VMs)
-Single IdP for Appgate]
-  KC -->|OIDC preferred| APPG[Appgate SDP (Hybrid)
-Controllers + Gateways]
+  U[User] --> KC[Keycloak -Azure VMs Single IdP for Appgate]
+  KC -->|OIDC preferred| APPG[Appgate SDP -Hybrid Controllers + Gateways]
   KC -.->|SAML fallback| APPG
 
   subgraph Upstream_Identity
-    EN[Microsoft Entra ID
-CA/MFA]:::idp
+    EN[Microsoft Entra ID CA/MFA]:::idp
     AD[On‑prem AD DS]:::idp
   end
 
   subgraph Azure_Attributes
-    PD[PingDirectory (Azure)
+    PD[PingDirectory -Azure
 AAB Authoritative]:::dir
-    IAB[(Keycloak IAB
-Normalized Identity Bag)]:::store
+    IAB[Keycloak IAB Normalized Identity Bag]:::store
   end
 
-  ER[ExpressRoute
-Private Peering]:::net
+  ER[ExpressRoute Private Peering]:::net
 
-  APPG --> AZRES[Azure Protected Resources
-(web/ssh/rdp/apis)]:::res
-  APPG --> ONRES[On‑prem Protected Resources
-(web/ssh/rdp/apis)]:::res
+  APPG --> AZRES[Azure Protected Resources web/ssh/rdp/apis]:::res
+  APPG --> ONRES[On‑prem Protected Resources web/ssh/rdp/apis]:::res
 
   KC --> EN
   KC --> AD
@@ -303,50 +294,42 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-  subgraph Azure
-    AGW[Azure App Gateway
-TLS] --> KC1[Keycloak VM #1]
-    AGW --> KC2[Keycloak VM #2]
-    KC1 --- PG[(PostgreSQL HA)]
-    KC2 --- PG
-    KC1 --- KV[Key Vault]
-    KC2 --- KV
-
-    PD1[PingDirectory #1] --- PD2[PingDirectory #2]
-    PD2 --- PD3[PingDirectory #3 (opt)]
-    APPGC[Appgate Controllers (Azure)
-HA]:::app
-    APPGG_AZ[Appgate Gateways (Azure)]:::app
-  end
-
   subgraph On_Prem
-    ADDS[AD DS]:::idp
-    APPGG_OP[Appgate Gateways (On‑prem)]:::app
+    APPGG_OP[Appgate Gateways On‑prem]:::app
     ONRES[On‑prem Resources]:::res
+    ADDS[AD DS]:::idp
+    APPGC_OP[Appgate Controllers On-prem HA]:::app
   end
 
-  ENTRA[Entra ID]:::idp
-  AZRES[Azure Resources]:::res
-  ER[ExpressRoute
-Private Peering]:::net
+  subgraph Azure
+    KC1 --- PG[PostgreSQL HA]
+    AGW[Azure App Gateway TLS] --> KC1[Keycloak VM #1]
+    KC1 ---|https| KV[Key Vault]
 
+    PD1[PingDirectory #1]
+    APPGC[Appgate Controllers Azure]:::app
+    APPGG_AZ[Appgate Gateways Azure]:::app
+    ENTRA[Entra ID]:::idp
+    AZRES[Azure Resources]:::res
+  end
+    ER[ExpressRoute Private Peering]:::net
+
+  KC1 -->|scim syn| PD1
+
+  APPGC -->|udp/53<br>udp/tcp/443| APPGG_AZ
+  KC1 ---|scim sync| ER
+  APPGG_AZ ---|udp/53<br>udp/tcp/443| ER
+  APPGG_AZ -->|all ports| AZRES
   KC1 --> ENTRA
-  KC1 --> PD1
-  KC1 --- ER --- ADDS
-
-  APPGC --> APPGG_AZ --> AZRES
-  APPGC --> APPGG_OP --- ER --- ONRES
+  APPGC ---|udp/53<br>udp/tcp/443| ER
+  ER ---|udp/53<br>udp/tcp/443| APPGG_OP
+  ER ---|udp/53<br>udp/tcp/443| APPGC_OP
+  APPGG_OP -->|all ports| ONRES
+  APPGC --> KC1
+  ER ---|scim sync| ADDS
 
   classDef idp fill:#eef,stroke:#99f;
   classDef app fill:#fef,stroke:#c9c;
   classDef res fill:#fff,stroke:#999;
   classDef net fill:#eef,stroke:#666,stroke-dasharray: 5 5;
 ```
-
----
-
-## Appendix: Implementation backlog deltas (ExpressRoute)
-- Confirm ER topology (dual circuits/peering locations, gateway SKU, route propagation model).
-- Define DNS + certificate strategy for private endpoints/FQDNs.
-- Document network least-privilege rules (NSGs/UDRs/firewalls) for Keycloak↔PingDirectory↔Appgate flows.
-- Add operational runbooks: BGP health, failover drills, and degraded-mode policy behavior.
