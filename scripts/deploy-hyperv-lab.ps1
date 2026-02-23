@@ -1,6 +1,6 @@
 param(
     [string]$RepoRoot,
-    [string]$InstallIsoPath = 'C:\Users\adminlocal\Downloads\vyos-2025.11-generic-amd64.iso',
+    [string]$InstallIsoPath = 'D:\LocalSync_Data\ISOs\vyos-2025.11-generic-amd64.iso',
     [string]$IsoWorkingRoot,
     [UInt64]$MemoryStartupBytes = 1GB,
     [int]$CpuCount = 1,
@@ -10,7 +10,7 @@ param(
     [string]$AzureExternalAdapterName,
     [string]$OnPremUnderlayAdapterName,
     [string]$VmRoot,
-    [string]$VhdRoot = 'E:\Virtual Hard Disks\vyos-appgate-dren-lab-vhdx',
+    [string]$VhdRoot = 'D:\Production_Data\HyperV\Virtual Hard Disks\vyos-appgate-dren-lab-vhdx',
     [switch]$CreateSwitches = $true,
     [switch]$CreateVms = $true,
     [switch]$CreateConfigIsos = $true,
@@ -20,9 +20,9 @@ param(
     [switch]$SkipPreflight,
     [switch]$DisableDhcpEth0,
     [ValidateSet('ConfigOnly','NoCloud')]
-    [string]$ConfigIsoMode = 'ConfigOnly',
-    [switch]$UseVhdTemplate,
-    [string]$VhdTemplatePath = 'E:\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx',
+    [string]$ConfigIsoMode = 'NoCloud',
+    [switch]$UseVhdTemplate = $true,
+    [string]$VhdTemplatePath = 'D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx',
     [ValidateSet(0,1,2)]
     [int]$VmGeneration = 0,
     [bool]$SecureBootEnabled = $false,
