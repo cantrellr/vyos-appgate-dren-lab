@@ -1,6 +1,5 @@
 # Technical System Design: Appgate SDP + Keycloak + Entra ID + AD + PingDirectory (Azure) + Appgate (Hybrid) + ExpressRoute
 
-**Version:** 1.3 (ExpressRoute locked)  
 **Date:** 2026-02-20  
 **Audience:** Engineering + IAM + Security (DoD RMF / NIST 800-53 aligned)
 
