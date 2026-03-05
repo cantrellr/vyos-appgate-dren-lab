@@ -1,0 +1,121 @@
+﻿schemaVersion: "1.6"
+exportedAtUtc: "2026-03-05T22:34:14.8110548Z"
+sourceDomain:
+  dnsRoot: "cantrelloffice.cloud"
+  dn: "DC=cantrelloffice,DC=cloud"
+scope:
+  type: "TopLevelUnderscorePlusSubtree"
+  searchBase: "DC=cantrelloffice,DC=cloud"
+  topLevelSearchScope: "OneLevel"
+  topLevelNameFilter: "Name -like '_*'"
+  subtreeSearchScope: "Subtree"
+topLevelOUs:
+  -
+    name: "_COCLOUD"
+    dn: "OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+    parentDn: "DC=cantrelloffice,DC=cloud"
+    protected: true
+  -
+    name: "_NOSYNC"
+    dn: "OU=_NOSYNC,DC=cantrelloffice,DC=cloud"
+    parentDn: "DC=cantrelloffice,DC=cloud"
+    protected: true
+trees:
+  -
+    root:
+      name: "_COCLOUD"
+      dn: "OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+      protected: true
+      parentDn: "DC=cantrelloffice,DC=cloud"
+    ous:
+      -
+        name: "_COCLOUD"
+        dn: "OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "AdminGroups"
+        dn: "OU=AdminGroups,OU=Groups,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "AzureServices"
+        dn: "OU=AzureServices,OU=People,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Contacts"
+        dn: "OU=Contacts,OU=People,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Groups"
+        dn: "OU=Groups,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Machines"
+        dn: "OU=Machines,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "People"
+        dn: "OU=People,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "SeamlessSSO"
+        dn: "OU=SeamlessSSO,OU=Workstations,OU=Machines,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Servers"
+        dn: "OU=Servers,OU=Machines,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Storage"
+        dn: "OU=Storage,OU=Machines,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "THICK"
+        dn: "OU=THICK,OU=Workstations,OU=Machines,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "UserGroups"
+        dn: "OU=UserGroups,OU=Groups,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Users"
+        dn: "OU=Users,OU=People,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "VDI"
+        dn: "OU=VDI,OU=Workstations,OU=Machines,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Workstations"
+        dn: "OU=Workstations,OU=Machines,OU=_COCLOUD,DC=cantrelloffice,DC=cloud"
+        protected: true
+  -
+    root:
+      name: "_NOSYNC"
+      dn: "OU=_NOSYNC,DC=cantrelloffice,DC=cloud"
+      protected: true
+      parentDn: "DC=cantrelloffice,DC=cloud"
+    ous:
+      -
+        name: "_NOSYNC"
+        dn: "OU=_NOSYNC,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Administrators"
+        dn: "OU=Administrators,OU=People,OU=_NOSYNC,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Machines"
+        dn: "OU=Machines,OU=_NOSYNC,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "People"
+        dn: "OU=People,OU=_NOSYNC,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Servers"
+        dn: "OU=Servers,OU=Machines,OU=_NOSYNC,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Services"
+        dn: "OU=Services,OU=People,OU=_NOSYNC,DC=cantrelloffice,DC=cloud"
+        protected: true

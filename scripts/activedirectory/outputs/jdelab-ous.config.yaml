@@ -1,0 +1,121 @@
+﻿schemaVersion: "1.6"
+exportedAtUtc: "2026-03-05T22:00:41.9603706Z"
+sourceDomain:
+  dnsRoot: "cantrelloffice.cloud"
+  dn: "DC=cantrelloffice,DC=cloud"
+scope:
+  type: "TopLevelUnderscorePlusSubtree"
+  searchBase: "DC=cantrelloffice,DC=cloud"
+  topLevelSearchScope: "OneLevel"
+  topLevelNameFilter: "Name -like 'JDELAB*'"
+  subtreeSearchScope: "Subtree"
+topLevelOUs:
+  -
+    name: "JDELAB-Keycloak-Sync"
+    dn: "OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+    parentDn: "DC=cantrelloffice,DC=cloud"
+    protected: true
+  -
+    name: "JDELAB-Domain-NoSync"
+    dn: "OU=JDELAB-Domain-NoSync,DC=cantrelloffice,DC=cloud"
+    parentDn: "DC=cantrelloffice,DC=cloud"
+    protected: true
+trees:
+  -
+    root:
+      name: "JDELAB-Keycloak-Sync"
+      dn: "OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+      protected: true
+      parentDn: "DC=cantrelloffice,DC=cloud"
+    ous:
+      -
+        name: "JDELAB-Keycloak-Sync"
+        dn: "OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "AdminGroups"
+        dn: "OU=AdminGroups,OU=Groups,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "AzureServices"
+        dn: "OU=AzureServices,OU=People,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Contacts"
+        dn: "OU=Contacts,OU=People,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Groups"
+        dn: "OU=Groups,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Machines"
+        dn: "OU=Machines,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "People"
+        dn: "OU=People,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "SeamlessSSO"
+        dn: "OU=SeamlessSSO,OU=Workstations,OU=Machines,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Servers"
+        dn: "OU=Servers,OU=Machines,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Storage"
+        dn: "OU=Storage,OU=Machines,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "THICK"
+        dn: "OU=THICK,OU=Workstations,OU=Machines,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "UserGroups"
+        dn: "OU=UserGroups,OU=Groups,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Users"
+        dn: "OU=Users,OU=People,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "VDI"
+        dn: "OU=VDI,OU=Workstations,OU=Machines,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Workstations"
+        dn: "OU=Workstations,OU=Machines,OU=JDELAB-Keycloak-Sync,DC=cantrelloffice,DC=cloud"
+        protected: true
+  -
+    root:
+      name: "JDELAB-Domain-NoSync"
+      dn: "OU=JDELAB-Domain-NoSync,DC=cantrelloffice,DC=cloud"
+      protected: true
+      parentDn: "DC=cantrelloffice,DC=cloud"
+    ous:
+      -
+        name: "JDELAB-Domain-NoSync"
+        dn: "OU=JDELAB-Domain-NoSync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Administrators"
+        dn: "OU=Administrators,OU=People,OU=JDELAB-Domain-NoSync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Machines"
+        dn: "OU=Machines,OU=JDELAB-Domain-NoSync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "People"
+        dn: "OU=People,OU=JDELAB-Domain-NoSync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Servers"
+        dn: "OU=Servers,OU=Machines,OU=JDELAB-Domain-NoSync,DC=cantrelloffice,DC=cloud"
+        protected: true
+      -
+        name: "Services"
+        dn: "OU=Services,OU=People,OU=JDELAB-Domain-NoSync,DC=cantrelloffice,DC=cloud"
+        protected: true
