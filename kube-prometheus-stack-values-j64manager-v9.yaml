@@ -1,0 +1,441 @@
+global:
+  rbac:
+    create: true
+  imageRegistry: altregistry.dev.kube:8443/library
+  imagePullSecrets: []
+
+crds:
+  enabled: true
+
+nameOverride: j64manager
+fullnameOverride: j64manager
+
+prometheusOperator:
+  enabled: true
+  fullnameOverride: j64manager
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    retention: 120h
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: tkg-work-storage-iscsi-latebinding
+          resources:
+            requests:
+              storage: 120Gi
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+      seccompProfile:
+        type: RuntimeDefault
+    containers:
+      - name: alertmanager
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+
+prometheus:
+  enabled: true
+
+  # This remains a full Prometheus server, not Agent mode.
+  # The j64manager Agent is defined below in extraManifests.
+  agentMode: false
+
+  prometheusSpec:
+    replicas: 1
+
+    # This label is still useful for metadata sent by the central Prometheus to
+    # external integrations such as Alertmanager. It does not label locally
+    # stored data; that is why the embedded PrometheusAgent is used below.
+    externalLabels:
+      cluster: "j64manager"
+
+    # Central receiver for all cluster agents.
+    enableRemoteWriteReceiver: true
+
+    # -------------------------------------------------------------------------
+    # IMPORTANT: The central receiver must NOT scrape j64manager ServiceMonitors
+    # or PodMonitors directly, or unlabeled duplicate series return.
+    #
+    # These selectors intentionally match nothing. The embedded PrometheusAgent
+    # below uses broad selectors and performs the actual j64manager local scrapes.
+    # -------------------------------------------------------------------------
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+    serviceMonitorSelector:
+      matchLabels:
+        monitoring.cantrellcloud.net/receiver-scrape: "disabled"
+    podMonitorSelector:
+      matchLabels:
+        monitoring.cantrellcloud.net/receiver-scrape: "disabled"
+
+    # Central Prometheus should still evaluate the chart's PrometheusRules
+    # against the remote-written, cluster-labeled metrics.
+    ruleSelector: {}
+
+    serviceMonitorNamespaceSelector: {}
+    podMonitorNamespaceSelector: {}
+    ruleNamespaceSelector: {}
+
+    externalUrl: "https://j64manager-prometheus.dev.kube"
+
+    # Additional annotation-based scrape discovery is handled by the embedded
+    # j64manager PrometheusAgent via its own Secret in extraManifests.
+    additionalScrapeConfigs: []
+
+    scrapeInterval: 15s
+    scrapeTimeout: 10s
+    evaluationInterval: 15s
+
+    retention: 8d
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: tkg-work-storage-iscsi-latebinding
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 150Gi
+
+    resources:
+      requests:
+        cpu: 4
+        memory: 6Gi
+      limits:
+        cpu: 8
+        memory: 12Gi
+
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+      seccompProfile:
+        type: RuntimeDefault
+
+    containers:
+      - name: prometheus
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+
+  # These monitor objects are still rendered by the Helm release.
+  # The embedded PrometheusAgent, not the central Prometheus receiver, scrapes them.
+  additionalServiceMonitors:
+    - name: rocketchat
+      namespaceSelector:
+        matchNames:
+          - rocketchat
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: rocketchat
+      endpoints:
+        - port: http
+          path: /metrics
+          interval: 15s
+
+    - name: mongodb-rocketchat
+      namespaceSelector:
+        matchNames:
+          - mongodb
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: mongodb-exporter
+          app.kubernetes.io/instance: rocketchat
+      endpoints:
+        - port: metrics
+          path: /metrics
+          interval: 15s
+
+    - name: metallb-controller
+      namespaceSelector:
+        matchNames:
+          - metallb-system
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: controller
+      endpoints:
+        - port: http-metrics
+          path: /metrics
+          interval: 15s
+
+    - name: metallb-speaker
+      namespaceSelector:
+        matchNames:
+          - metallb-system
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: speaker
+      endpoints:
+        - port: http-metrics
+          path: /metrics
+          interval: 15s
+
+    - name: nats-exporter
+      namespaceSelector:
+        matchNames:
+          - nats-system
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus-nats-exporter
+      endpoints:
+        - port: http-metrics
+          path: /metrics
+          interval: 15s
+
+    - name: istiod
+      namespaceSelector:
+        matchNames:
+          - istio-system
+      selector:
+        matchLabels:
+          app: istiod
+          istio.io/rev: stable
+      endpoints:
+        - port: http-monitoring
+          path: /metrics
+          interval: 15s
+          scrapeTimeout: 10s
+
+    - name: istio-eastwestgateway
+      namespaceSelector:
+        matchNames:
+          - istio-system
+      selector:
+        matchExpressions:
+          - key: istio
+            operator: Exists
+      endpoints:
+        - port: http-envoy-prom
+          path: /stats/prometheus
+          interval: 15s
+          scrapeTimeout: 10s
+
+  additionalPodMonitors:
+    - name: istio-proxies
+      namespaceSelector:
+        any: true
+      selector:
+        matchLabels:
+          istio-prometheus-scrape: "true"
+      podMetricsEndpoints:
+        - port: http-envoy-prom
+          path: /stats/prometheus
+          interval: 15s
+
+grafana:
+  enabled: true
+
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+
+  grafana.ini:
+    server:
+      domain: j64manager-grafana.dev.kube
+      root_url: https://j64manager-grafana.dev.kube
+      serve_from_sub_path: false
+    analytics:
+      reporting_enabled: false
+      check_for_updates: false
+      check_for_plugin_updates: false
+      feedback_links_enabled: false
+    plugins:
+      preinstall_disabled: true
+      preinstall_auto_update: false
+      public_key_retrieval_disabled: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 472
+    fsGroup: 472
+    seccompProfile:
+      type: RuntimeDefault
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+# Keep the local metrics producers enabled. The PrometheusAgent created below
+# will scrape their ServiceMonitors/PodMonitors and remote-write the results.
+kube-state-metrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+kubelet:
+  serviceMonitor:
+    enabled: true
+    kubelet: true
+    honorTimestamps: false
+    trackTimestampsStaleness: false
+    cAdvisor: true
+    cAdvisorInterval: 15s
+    cAdvisorTimeout: 7s
+
+# -----------------------------------------------------------------------------
+# Extra resources owned by this same Helm release:
+#   1. Secret containing annotation-based additional scrape config for the Agent
+#   2. PrometheusAgent CR for j64manager local scraping + remote_write
+# -----------------------------------------------------------------------------
+extraManifests:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: j64manager-agent-additional-scrape-configs
+      namespace: monitoring
+      labels:
+        app.kubernetes.io/name: j64manager-prometheus-agent
+        app.kubernetes.io/part-of: kube-prometheus-stack
+    type: Opaque
+    stringData:
+      additional-scrape-configs.yaml: |
+        - job_name: kubernetes
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - source_labels:
+                - __meta_kubernetes_pod_annotation_prometheus_io_scrape
+              action: keep
+              regex: true
+
+  - apiVersion: monitoring.coreos.com/v1alpha1
+    kind: PrometheusAgent
+    metadata:
+      name: j64manager-agent
+      namespace: monitoring
+      labels:
+        app.kubernetes.io/name: j64manager-prometheus-agent
+        app.kubernetes.io/part-of: kube-prometheus-stack
+    spec:
+      replicas: 1
+
+      # Reuse the chart-created Prometheus service account and its RBAC.
+      serviceAccountName: j64manager-prometheus
+
+      image: altregistry.dev.kube:8443/library/prometheus/prometheus:v3.8.0
+      imagePullPolicy: IfNotPresent
+      version: v3.8.0
+      portName: http-web
+
+      externalLabels:
+        cluster: "j64manager"
+
+      scrapeInterval: 15s
+      scrapeTimeout: 10s
+
+      serviceMonitorSelector: {}
+      podMonitorSelector: {}
+      serviceMonitorNamespaceSelector: {}
+      podMonitorNamespaceSelector: {}
+
+      additionalScrapeConfigs:
+        name: j64manager-agent-additional-scrape-configs
+        key: additional-scrape-configs.yaml
+
+      remoteWrite:
+        - name: "j64manager"
+          url: https://j64manager-prometheus-rw.dev.kube/api/v1/write
+          messageVersion: V1.0
+          tlsConfig:
+            ca:
+              secret:
+                name: devlocal-ca-bundle-secret
+                key: ca.crt
+            cert:
+              secret:
+                name: prom-remote-write-client-tls
+                key: tls.crt
+            keySecret:
+              name: prom-remote-write-client-tls
+              key: tls.key
+            serverName: j64manager-prometheus-rw.dev.kube
+            insecureSkipVerify: false
+          queueConfig:
+            capacity: 7500
+            minShards: 1
+            maxShards: 30
+            maxSamplesPerSend: 2000
+            batchSendDeadline: 10s
+
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: tkg-work-storage-iscsi-latebinding
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 120Gi
+
+      resources:
+        requests:
+          cpu: 300m
+          memory: 1Gi
+        limits:
+          cpu: 2
+          memory: 2Gi
