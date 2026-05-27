@@ -1,0 +1,28 @@
+clusters:
+  - name: j64manager
+    serviceCIDR: 10.93.0.0/16
+    podCIDR: 10.243.0.0/16
+    nodes:
+      - path: configs/nodes/j64manager/j64manager-ctrl01.yaml
+      - path: configs/nodes/j64manager/j64manager-work01.yaml
+
+  - name: j64domain
+    serviceCIDR: 10.94.0.0/16
+    podCIDR: 10.244.0.0/16
+    nodes:
+      - path: configs/nodes/j64domain/j64domain-ctrl01.yaml
+      - path: configs/nodes/j64domain/j64domain-work01.yaml
+
+  - name: j52domain
+    serviceCIDR: 10.96.0.0/16
+    podCIDR: 10.246.0.0/16
+    nodes:
+      - path: configs/nodes/j52domain/j52domain-ctrl01.yaml
+      - path: configs/nodes/j52domain/j52domain-work01.yaml
+
+  - name: r01domain
+    serviceCIDR: 10.98.0.0/16
+    podCIDR: 10.248.0.0/16
+    nodes:
+      - path: configs/nodes/r01domain/r01domain-ctrl01.yaml
+      - path: configs/nodes/r01domain/r01domain-work01.yaml

@@ -1,0 +1,38 @@
+#cloud-config
+hostname: j52domain-ctrl01
+write_files:
+  - path: /etc/hosts
+    content: |
+      127.0.0.1 localhost
+      10.0.4.161 j52domain-ctrl01
+
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: false
+      addresses: [10.0.4.161/24]
+      gateway4: 10.0.4.1
+      nameservers:
+        addresses: [10.0.4.2]
+    eth1:
+      dhcp4: false
+      addresses: [172.16.0.116/24]
+    eth2:
+      dhcp4: false
+      addresses: [1.0.0.161/25]
+
+runcmd:
+  - curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="server" sh -
+  - systemctl enable rke2-server.service
+  - systemctl start rke2-server.service
+  - mkdir -p /etc/rancher/rke2
+  - cat > /etc/rancher/rke2/config.yaml <<'EOF'
+node-label:
+  - "node-role.kubernetes.io/control-plane=true"
+  - "node-role.kubernetes.io/worker=true"
+service-cidr: 10.96.0.0/16
+cluster-cidr: 10.246.0.0/16
+EOF
+
+final_message: "j52domain-ctrl01 cloud-init applied"

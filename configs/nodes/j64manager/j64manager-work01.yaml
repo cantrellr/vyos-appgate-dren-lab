@@ -1,0 +1,40 @@
+#cloud-config
+hostname: j64manager-work01
+write_files:
+  - path: /etc/hosts
+    content: |
+      127.0.0.1 localhost
+      10.0.4.135 j64manager-work01
+
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: false
+      addresses: [10.0.4.135/24]
+      gateway4: 10.0.4.1
+      nameservers:
+        addresses: [10.0.4.2]
+    eth1:
+      dhcp4: false
+      addresses: [172.16.0.105/24]
+    eth2:
+      dhcp4: false
+      addresses: [1.0.0.135/25]
+
+# NOTE: Set RKE2_URL and RKE2_TOKEN in the environment or cloud-init before installing agent
+runcmd:
+  - |
+    if [ -z "${RKE2_URL}" ] || [ -z "${RKE2_TOKEN}" ]; then
+      echo "RKE2_URL or RKE2_TOKEN not set — please supply these before bootstrapping agent" >/var/log/rke2-bootstrap.log
+    fi
+  - curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" sh -
+  - systemctl enable rke2-agent.service
+  - systemctl start rke2-agent.service
+  - mkdir -p /etc/rancher/rke2
+  - cat > /etc/rancher/rke2/config.yaml <<'EOF'
+node-label:
+  - "node-role.kubernetes.io/worker=true"
+EOF
+
+final_message: "j64manager-work01 cloud-init applied (ensure RKE2_URL/TOKEN set)"
