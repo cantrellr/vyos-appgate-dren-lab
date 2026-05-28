@@ -1,0 +1,80 @@
+# central-router.vyos – central NAT router for the home‑lab multicluster environment
+
+# This configuration provisions a VyOS router that connects all site routers to the
+# upstream physical network via the Hyper‑V external switch on VLAN 9.  The central
+# router performs source NAT for all internal networks so that home‑lab
+# Kubernetes nodes can access the Internet to pull images and reach external
+# services.  It also advertises static routes back to each site so that return
+# traffic is forwarded correctly.
+
+set system host-name 'central-router'
+
+# External uplink – connect eth0 to the cotpa_vlans_vsw Hyper‑V switch and tag
+# VLAN 9.  In most home‑lab setups this interface will obtain its address via
+# DHCP from your upstream network.  Uncomment the static address line if your
+# environment requires a fixed IP.
+set interfaces ethernet eth0 description 'external uplink (cotpa_vlans_vsw vlan9)'
+set interfaces ethernet eth0 vlan '9'
+set interfaces ethernet eth0 dhcp
+# set interfaces ethernet eth0 address 'X.X.X.X/24'
+
+# Transit network – this internal /24 network connects the central router to
+# each site router.  Every site router gets a unique address within this
+# range; see the site router configs for details.
+set interfaces ethernet eth1 description 'transit'
+set interfaces ethernet eth1 address '10.254.0.1/24'
+
+# Static routes – send traffic destined for each site’s internal networks to the
+# appropriate next hop on the transit network.  Without these routes the
+# central router would not know how to reach the cluster subnets behind each
+# site router.
+
+# Site dc1 (j64manager and j64domain)
+set protocols static route 10.1.4.0/24 next-hop '10.254.0.2'
+set protocols static route 172.16.10.0/24 next-hop '10.254.0.2'
+set protocols static route 192.168.1.0/24 next-hop '10.254.0.2'
+set protocols static route 1.1.0.0/24 next-hop '10.254.0.2'
+
+# Site dc2 (j52domain)
+set protocols static route 10.2.4.0/24 next-hop '10.254.0.3'
+set protocols static route 172.16.20.0/24 next-hop '10.254.0.3'
+set protocols static route 192.168.2.0/24 next-hop '10.254.0.3'
+set protocols static route 1.2.0.0/24 next-hop '10.254.0.3'
+
+# Site dc3 (r01domain)
+set protocols static route 10.3.4.0/24 next-hop '10.254.0.4'
+set protocols static route 172.16.30.0/24 next-hop '10.254.0.4'
+set protocols static route 192.168.3.0/24 next-hop '10.254.0.4'
+set protocols static route 1.3.0.0/24 next-hop '10.254.0.4'
+
+# Source NAT rules – masquerade outbound traffic from internal lab networks
+# to the address assigned on the external uplink.  The rules are grouped
+# by private IP space for clarity.  Adjust these ranges if you add more
+# networks in the future.
+set nat source rule 100 outbound-interface 'eth0'
+set nat source rule 100 source address '10.0.0.0/8'
+set nat source rule 100 translation address 'masquerade'
+
+set nat source rule 110 outbound-interface 'eth0'
+set nat source rule 110 source address '172.16.0.0/12'
+set nat source rule 110 translation address 'masquerade'
+
+set nat source rule 120 outbound-interface 'eth0'
+set nat source rule 120 source address '192.168.0.0/16'
+set nat source rule 120 translation address 'masquerade'
+
+set nat source rule 130 outbound-interface 'eth0'
+set nat source rule 130 source address '1.0.0.0/16'
+set nat source rule 130 translation address 'masquerade'
+
+# Basic permissive firewall posture – since this is a lab, default all
+# interfaces to accept traffic.  In a hardened environment you would add
+# appropriate rules here.
+set firewall ipv4 input filter default-action 'accept'
+set firewall ipv4 forward filter default-action 'accept'
+set firewall ipv4 output filter default-action 'accept'
+
+# Limit management SSH access to the out‑of‑band management network (10.255.255.0/24).
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'
