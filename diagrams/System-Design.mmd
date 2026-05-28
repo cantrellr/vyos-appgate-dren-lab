@@ -30,13 +30,15 @@ flowchart LR
 
   Internet[[Internet]]
   CentralRouter["Central Transit Router\n(Transit + Internet Uplink)"]
-  EdgeRouter1["dc1manager VyOS Router\n(Site Router)"]
-  EdgeRouter2["dc2domain VyOS Router\n(Site Router)"]
-  EdgeRouter3["dc3domain VyOS Router\n(Site Router)"]
+  EdgeRouter1["dc1manager-router\n(Site Router)"]
+  EdgeRouter2["dc2domain-router\n(Site Router)"]
+  EdgeRouter3["dc3domain-router\n(Site Router)"]
+  ExtSwitch["cotpa-vlans_vsw\n(External Switch VLAN 9)"]
 
   EdgeRouter1 -->|transit| CentralRouter
   EdgeRouter2 -->|transit| CentralRouter
   EdgeRouter3 -->|transit| CentralRouter
+  ExtSwitch -->|eth0 VLAN 9| CentralRouter
   CentralRouter -->|egress| Internet
 
   CentralRouter --> MG
@@ -44,8 +46,7 @@ flowchart LR
   EdgeRouter2 --> DC2
   EdgeRouter3 --> DC3
 
-  click Storage "../configs/nodes/ip-matrix.md" "IP matrix & storage ranges"
-  click EdgeRouter1 "../configs/nodes/network/vyos/dc1manager.vyos" "dc1manager VyOS fragment"
-  click EdgeRouter2 "../configs/nodes/network/vyos/dc2domain.vyos" "dc2domain VyOS fragment"
-  click EdgeRouter3 "../configs/nodes/network/vyos/dc3domain.vyos" "dc3domain VyOS fragment"
-  click CentralRouter "../configs/nodes/network/vyos/central-router.vyos" "Central Transit VyOS fragment"
+  click CentralRouter "../scripts/create-vyos-routers.ps1" "Router provisioning script"
+  click MG "../configs/home-lab/nodes/dc1manager-ctrl01.yaml" "Management cluster node manifest"
+  click DC2 "../configs/home-lab/nodes/dc2domain-ctrl01.yaml" "dc2 cluster node manifest"
+  click DC3 "../configs/home-lab/nodes/dc3domain-ctrl01.yaml" "dc3 cluster node manifest"

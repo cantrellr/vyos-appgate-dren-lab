@@ -4,11 +4,11 @@
 flowchart TB
   subgraph DC1 [dc1 Site]
     direction LR
-    vsw1["vSwitch-dc1 (kubes-domain)"]
+    vsw1["vSwitch-dc1-kubes"]
     vsw1s["vSwitch-dc1-storage (netapp-1001)"]
     vdom["vSwitch-dc1-domain (management)"]
     vseg["vSwitch-dc1-seg1 (segment1)"]
-    router1["VyOS: dc1manager router\n(uplink + NAT)"]
+    router1["VyOS: dc1manager-router"]
     vsw1 --> router1
     vsw1s --> router1
     vdom --> router1
@@ -31,11 +31,11 @@ flowchart TB
 
   subgraph DC2 [dc2 Site]
     direction LR
-    v2["vSwitch-dc2"]
+    v2["vSwitch-dc2-kubes"]
     v2s["vSwitch-dc2-storage"]
     v2d["vSwitch-dc2-domain"]
     v2g["vSwitch-dc2-seg1"]
-    router2["VyOS: dc2domain router"]
+    router2["VyOS: dc2domain-router"]
     v2 --> router2
     v2s --> router2
     v2d --> router2
@@ -55,11 +55,11 @@ flowchart TB
 
   subgraph DC3 [dc3 Site]
     direction LR
-    v3["vSwitch-dc3"]
+    v3["vSwitch-dc3-kubes"]
     v3s["vSwitch-dc3-storage"]
     v3d["vSwitch-dc3-domain"]
     v3g["vSwitch-dc3-seg1"]
-    router3["VyOS: dc3domain router"]
+    router3["VyOS: dc3domain-router"]
     v3 --> router3
     v3s --> router3
     v3d --> router3
@@ -77,13 +77,18 @@ flowchart TB
     n6 --- v3g
   end
 
-  %% Inter-site connectivity: each site router connects to Central Transit Router, which connects to the Internet
+  %% Inter-site connectivity: each site router connects to Central Transit Router.
+  transit["vSwitch-transit (internal)"]
   router2 -->|transit| central["Central Transit Router\n(10.254.0.1)"]
   router3 -->|transit| central
   router1 -->|transit| central
-  central -->|Internet Uplink| Internet[[Internet]]
+  central --- transit
 
-  click router1 "../configs/nodes/network/vyos/dc1manager.vyos" "dc1manager VyOS fragment"
-  click router2 "../configs/nodes/network/vyos/dc2domain.vyos" "dc2domain VyOS fragment"
-  click router3 "../configs/nodes/network/vyos/dc3domain.vyos" "dc3domain VyOS fragment"
-  click central "../configs/nodes/network/vyos/central-router.vyos" "Central router vyos fragment"
+  extsw["cotpa-vlans_vsw\n(external switch)"]
+  extsw -->|VLAN 9 uplink| central
+  central -->|Internet| Internet[[Internet]]
+
+  click central "../scripts/create-vyos-routers.ps1" "Router provisioning script"
+  click n1 "../configs/home-lab/nodes/dc1manager-ctrl01.yaml" "dc1manager control node manifest"
+  click n3 "../configs/home-lab/nodes/dc2domain-ctrl01.yaml" "dc2domain control node manifest"
+  click n5 "../configs/home-lab/nodes/dc3domain-ctrl01.yaml" "dc3domain control node manifest"

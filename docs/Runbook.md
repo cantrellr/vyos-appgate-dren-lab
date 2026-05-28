@@ -73,6 +73,33 @@ On Azure external:
 .\scripts\remove-hyperv-lab.ps1
 ```
 
+## 6) Home-lab multicluster workflow (dc1/dc2/dc3)
+
+Use this path for the multicluster lab with one central transit router and one site router per site.
+
+1. Ensure the external Hyper-V switch that carries VLAN 9 exists.
+Example switch name used by scripts: `cotpa-vlans_vsw`.
+
+1. Create VyOS routers and internal vSwitches:
+
+```powershell
+.\scripts\create-vyos-routers.ps1 -VhdPath "C:\images\vyos.vhdx" -ExternalSwitchName "cotpa-vlans_vsw" -ExternalVlanId 9
+```
+
+1. Create node VMs (1 CPU, 4 GB RAM, 4 NICs per VM):
+
+```powershell
+.\scripts\create-multicluster-vms.ps1 -VhdPath "C:\images\ubuntu-server.vhdx"
+```
+
+1. Apply cluster node manifests from:
+
+- `configs/home-lab/nodes/`
+
+Notes:
+
+- Only `central-router` gets the external uplink on VLAN 9.
+- Site and transit switches are internal.
 ---
 
 ## Validation

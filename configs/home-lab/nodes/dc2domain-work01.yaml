@@ -1,0 +1,39 @@
+apiVersion: rkeprep/v2
+kind: Agent
+metadata:
+  name: dc2domain-work01
+spec:
+  hostname: dc2domain-work01
+  nodeIp: 10.2.4.165
+  bindAddress: 10.2.4.165
+  advertiseAddress: 10.2.4.165
+  cni:
+    - multus
+    - canal
+  interfaces:
+    - name: eth0
+      ip: 10.2.4.165
+      prefix: 24
+      gateway: 10.2.4.1
+      dns: ["10.2.4.2"]
+    - name: eth1
+      ip: 172.16.20.120
+      prefix: 24
+    - name: eth2
+      ip: 192.168.2.165
+      prefix: 24
+    - name: eth3
+      ip: 1.2.0.165
+      prefix: 25
+  serverURL: https://10.2.4.161:9345
+  tokenFile: /rke2-node-init/outputs/dc2domain-ca-bootstrap-token.txt
+  node-label:
+    - "role=worker"
+    - "env=preprod"
+  customCA:
+    rootCrt: /rke2-node-init/configs/preprod/certs/root-ca.crt
+    rootKey: /rke2-node-init/configs/preprod/certs/root-ca-key.pem
+    installToOSTrust: true
+  disable:
+    - rke2-ingress-nginx
+    - rke2-ingress-traefik

@@ -166,23 +166,33 @@ This repo implements two explicit, enforced firewall postures and a set of optio
 
 These are **paste‑ready `set ...` commands**. Prefer editing the `configs/*.vyos` that correspond to the router you want to change and testing the changes on a single VyOS VM before applying across the lab.
 
-## Hyper‑V deployment
+## Hyper-V deployment
 
-Scripts are in `scripts/`. See the per-script technical READMEs for in-depth behavior, invocation, and examples:
+Scripts are in `scripts/`. This repo now contains two deployment tracks.
 
-- `create-hyperv-switches.ps1` — creates the vSwitches used by the lab; details: [scripts/create-hyperv-switches.md](scripts/create-hyperv-switches.md)
-- `deploy-hyperv-lab.ps1` — creates 11 VMs and attaches NICs in **eth0..ethN order**; details: [scripts/deploy-hyperv-lab.md](scripts/deploy-hyperv-lab.md)
-- `remove-hyperv-lab.ps1` — tears down the lab; details: [scripts/remove-hyperv-lab.md](scripts/remove-hyperv-lab.md)
-- `bootstrap-vyos.ps1` — builds config/cloud-init ISOs and can attach them to VMs; details: [scripts/bootstrap-vyos.md](scripts/bootstrap-vyos.md)
-- `export-vyos-hwids.ps1` — extract VM MAC addresses and render VyOS `hw-id` lines; details: [scripts/export-vyos-hwids.md](scripts/export-vyos-hwids.md)
-- `apply-config.sh` — simple SSH-based config apply helper; details: [scripts/apply-config.md](scripts/apply-config.md)
-- `validate-dren.sh` — on-box DREN policy validation helper; details: [scripts/validate-dren.md](scripts/validate-dren.md)
+Classic 11-router lab (Azure/On-prem/DREN):
 
-See [docs/Runbook.md](docs/Runbook.md) for the exact commands and validation checks.
+- `create-hyperv-switches.ps1` - creates the vSwitches used by the lab; details: [scripts/create-hyperv-switches.md](scripts/create-hyperv-switches.md)
+- `deploy-hyperv-lab.ps1` - creates 11 VMs and attaches NICs in **eth0..ethN order**; details: [scripts/deploy-hyperv-lab.md](scripts/deploy-hyperv-lab.md)
+- `remove-hyperv-lab.ps1` - tears down the lab; details: [scripts/remove-hyperv-lab.md](scripts/remove-hyperv-lab.md)
+- `bootstrap-vyos.ps1` - builds config ISOs and can attach them to VMs; details: [scripts/bootstrap-vyos.md](scripts/bootstrap-vyos.md)
+- `export-vyos-hwids.ps1` - extract VM MAC addresses and render VyOS `hw-id` lines; details: [scripts/export-vyos-hwids.md](scripts/export-vyos-hwids.md)
+- `apply-config.sh` - simple SSH-based config apply helper; details: [scripts/apply-config.md](scripts/apply-config.md)
+- `validate-dren.sh` - on-box DREN policy validation helper; details: [scripts/validate-dren.md](scripts/validate-dren.md)
+
+Home-lab multicluster track (dc1/dc2/dc3 + central router):
+
+- `create-vyos-routers.ps1` - creates central/site VyOS routers and internal site/transit switches; details: [scripts/create-vyos-routers.md](scripts/create-vyos-routers.md)
+- `create-multicluster-vms.ps1` - creates node VMs (1 CPU, 4 GB, 4 NICs); details: [scripts/create-multicluster-vms.md](scripts/create-multicluster-vms.md)
+- Node manifests: [configs/home-lab/nodes/](configs/home-lab/nodes/)
+
+See [docs/Runbook.md](docs/Runbook.md) for deployment and validation commands.
 
 ## Diagrams
 
-- Topology diagram: [diagrams/topology.mmd](diagrams/topology.mmd)
-- Additional mermaid sources: [diagrams/new-routing-topology.mmd](diagrams/new-routing-topology.mmd), [diagrams/appgate-flows.mmd](diagrams/appgate-flows.mmd)
+- Classic topology: [diagrams/topology.mmd](diagrams/topology.mmd)
+- Classic app flows: [diagrams/appgate-flows.mmd](diagrams/appgate-flows.mmd)
+- Home-lab network topology: [diagrams/Network-Topology.mmd](diagrams/Network-Topology.mmd)
+- Home-lab system design: [diagrams/System-Design.mmd](diagrams/System-Design.mmd)
 
 For validation and design details see [docs/System-Design.md](docs/System-Design.md).
