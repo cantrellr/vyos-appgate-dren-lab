@@ -1,0 +1,19 @@
+# VyOS fragment for dc3domain router interfaces
+set interfaces ethernet eth0 description 'kubes-domain'
+set interfaces ethernet eth0 address '10.3.4.179/24'
+
+set interfaces ethernet eth1 description 'netapp-1001'
+set interfaces ethernet eth1 address '172.16.30.121/24'
+
+set interfaces ethernet eth2 description 'domain'
+set interfaces ethernet eth2 address '192.168.3.179/24'
+
+set interfaces ethernet eth3 description 'segment1'
+set interfaces ethernet eth3 address '1.3.0.179/25'
+
+# Transit interface to Central Transit Router
+set interfaces ethernet eth4 description 'transit'
+set interfaces ethernet eth4 address '10.254.0.13/24'
+
+# Default route via Central Transit Router
+set protocols static route 0.0.0.0/0 next-hop '10.254.0.1'

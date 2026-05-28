@@ -1,28 +1,32 @@
 clusters:
-  - name: j64manager
+  - name: dc1manager
+    site: dc1
     serviceCIDR: 10.93.0.0/16
     podCIDR: 10.243.0.0/16
     nodes:
-      - path: configs/nodes/j64manager/j64manager-ctrl01.yaml
-      - path: configs/nodes/j64manager/j64manager-work01.yaml
+      - path: configs/nodes/dc1manager/dc1manager-ctrl01.yaml
+      - path: configs/nodes/dc1manager/dc1manager-work01.yaml
 
-  - name: j64domain
+  - name: dc1domain
+    site: dc1
     serviceCIDR: 10.94.0.0/16
     podCIDR: 10.244.0.0/16
     nodes:
-      - path: configs/nodes/j64domain/j64domain-ctrl01.yaml
-      - path: configs/nodes/j64domain/j64domain-work01.yaml
+      - path: configs/nodes/dc1domain/dc1domain-ctrl01.yaml
+      - path: configs/nodes/dc1domain/dc1domain-work01.yaml
 
-  - name: j52domain
+  - name: dc2domain
+    site: dc2
     serviceCIDR: 10.96.0.0/16
     podCIDR: 10.246.0.0/16
     nodes:
-      - path: configs/nodes/j52domain/j52domain-ctrl01.yaml
-      - path: configs/nodes/j52domain/j52domain-work01.yaml
+      - path: configs/nodes/dc2domain/dc2domain-ctrl01.yaml
+      - path: configs/nodes/dc2domain/dc2domain-work01.yaml
 
-  - name: r01domain
+  - name: dc3domain
+    site: dc3
     serviceCIDR: 10.98.0.0/16
     podCIDR: 10.248.0.0/16
     nodes:
-      - path: configs/nodes/r01domain/r01domain-ctrl01.yaml
-      - path: configs/nodes/r01domain/r01domain-work01.yaml
+      - path: configs/nodes/dc3domain/dc3domain-ctrl01.yaml
+      - path: configs/nodes/dc3domain/dc3domain-work01.yaml

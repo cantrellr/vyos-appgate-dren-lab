@@ -1,9 +1,0 @@
-# VyOS fragment for j52domain router interfaces
-set interfaces ethernet eth0 description 'kubes-domain'
-set interfaces ethernet eth0 address '10.0.4.159/24'
-
-set interfaces ethernet eth1 description 'netapp-1001'
-set interfaces ethernet eth1 address '172.16.0.115/24'
-
-set interfaces ethernet eth2 description 'segment1'
-set interfaces ethernet eth2 address '1.0.0.159/25'

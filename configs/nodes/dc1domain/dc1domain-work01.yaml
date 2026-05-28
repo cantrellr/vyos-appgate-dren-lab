@@ -1,26 +1,29 @@
 #cloud-config
-hostname: j52domain-work01
+hostname: dc1domain-work01
 write_files:
   - path: /etc/hosts
     content: |
       127.0.0.1 localhost
-      10.0.4.165 j52domain-work01
+      10.1.4.145 dc1domain-work01
 
 network:
   version: 2
   ethernets:
     eth0:
       dhcp4: false
-      addresses: [10.0.4.165/24]
-      gateway4: 10.0.4.1
+      addresses: [10.1.4.145/24]
+      gateway4: 10.1.4.1
       nameservers:
-        addresses: [10.0.4.2]
+        addresses: [10.1.4.2]
     eth1:
       dhcp4: false
-      addresses: [172.16.0.120/24]
+      addresses: [172.16.10.113/24]
     eth2:
       dhcp4: false
-      addresses: [1.0.0.165/25]
+      addresses: [192.168.1.145/24]
+    eth3:
+      dhcp4: false
+      addresses: [1.1.0.145/25]
 
 # NOTE: Set RKE2_URL and RKE2_TOKEN before bootstrapping agent
 runcmd:
@@ -37,4 +40,4 @@ node-label:
   - "node-role.kubernetes.io/worker=true"
 EOF
 
-final_message: "j52domain-work01 cloud-init applied (ensure RKE2_URL/TOKEN set)"
+final_message: "dc1domain-work01 cloud-init applied (ensure RKE2_URL/TOKEN set)"

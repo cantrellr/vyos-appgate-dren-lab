@@ -1,0 +1,89 @@
+%% Mermaid Network Topology Diagram - Multicluster Home Lab
+%% Shows per-site networks, vSwitches, routers, and node NIC attachments
+
+flowchart TB
+  subgraph DC1 [dc1 Site]
+    direction LR
+    vsw1["vSwitch-dc1 (kubes-domain)"]
+    vsw1s["vSwitch-dc1-storage (netapp-1001)"]
+    vdom["vSwitch-dc1-domain (management)"]
+    vseg["vSwitch-dc1-seg1 (segment1)"]
+    router1["VyOS: dc1manager router\n(uplink + NAT)"]
+    vsw1 --> router1
+    vsw1s --> router1
+    vdom --> router1
+    vseg --> router1
+
+    subgraph DC1Nodes [Nodes]
+      direction TB
+      n1["dc1manager-ctrl01\neth0:10.1.4.131\neth1:172.16.10.101\neth2:192.168.1.131\neth3:1.1.0.131"]
+      n2["dc1manager-work01\neth0:10.1.4.135\neth1:172.16.10.105\neth2:192.168.1.135\neth3:1.1.0.135"]
+      n1 --- vsw1
+      n1 --- vsw1s
+      n1 --- vdom
+      n1 --- vseg
+      n2 --- vsw1
+      n2 --- vsw1s
+      n2 --- vdom
+      n2 --- vseg
+    end
+  end
+
+  subgraph DC2 [dc2 Site]
+    direction LR
+    v2["vSwitch-dc2"]
+    v2s["vSwitch-dc2-storage"]
+    v2d["vSwitch-dc2-domain"]
+    v2g["vSwitch-dc2-seg1"]
+    router2["VyOS: dc2domain router"]
+    v2 --> router2
+    v2s --> router2
+    v2d --> router2
+    v2g --> router2
+
+    n3["dc2domain-ctrl01\neth0:10.2.4.161\neth1:172.16.20.116\neth2:192.168.2.161\neth3:1.2.0.161"]
+    n4["dc2domain-work01\neth0:10.2.4.165\neth1:172.16.20.120\neth2:192.168.2.165\neth3:1.2.0.165"]
+    n3 --- v2
+    n3 --- v2s
+    n3 --- v2d
+    n3 --- v2g
+    n4 --- v2
+    n4 --- v2s
+    n4 --- v2d
+    n4 --- v2g
+  end
+
+  subgraph DC3 [dc3 Site]
+    direction LR
+    v3["vSwitch-dc3"]
+    v3s["vSwitch-dc3-storage"]
+    v3d["vSwitch-dc3-domain"]
+    v3g["vSwitch-dc3-seg1"]
+    router3["VyOS: dc3domain router"]
+    v3 --> router3
+    v3s --> router3
+    v3d --> router3
+    v3g --> router3
+
+    n5["dc3domain-ctrl01\neth0:10.3.4.181\neth1:172.16.30.123\neth2:192.168.3.181\neth3:1.3.0.181"]
+    n6["dc3domain-work01\neth0:10.3.4.185\neth1:172.16.30.127\neth2:192.168.3.185\neth3:1.3.0.185"]
+    n5 --- v3
+    n5 --- v3s
+    n5 --- v3d
+    n5 --- v3g
+    n6 --- v3
+    n6 --- v3s
+    n6 --- v3d
+    n6 --- v3g
+  end
+
+  %% Inter-site connectivity: each site router connects to Central Transit Router, which connects to the Internet
+  router2 -->|transit| central["Central Transit Router\n(10.254.0.1)"]
+  router3 -->|transit| central
+  router1 -->|transit| central
+  central -->|Internet Uplink| Internet[[Internet]]
+
+  click router1 "../configs/nodes/network/vyos/dc1manager.vyos" "dc1manager VyOS fragment"
+  click router2 "../configs/nodes/network/vyos/dc2domain.vyos" "dc2domain VyOS fragment"
+  click router3 "../configs/nodes/network/vyos/dc3domain.vyos" "dc3domain VyOS fragment"
+  click central "../configs/nodes/network/vyos/central-router.vyos" "Central router vyos fragment"

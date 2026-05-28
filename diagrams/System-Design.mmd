@@ -1,0 +1,51 @@
+%% Mermaid System Design Diagram - Multicluster Lab (dc* names)
+%% Shows high-level components: management cluster, app clusters, monitoring, storage, and network gateways
+
+flowchart LR
+  subgraph ManagementSite [dc1 — Management Site]
+    direction TB
+    MG["dc1manager Cluster\n(MongoDB, Monitoring, Istio CP)"]
+    MG -->|manages| DC1A["dc1domain Cluster\n(Apps: Rocket.Chat, NATS)"]
+  end
+
+  subgraph RemoteSites [dc2/dc3 — Remote App Sites]
+    direction TB
+    DC2["dc2domain Cluster\n(Apps)"]
+    DC3["dc3domain Cluster\n(Apps)"]
+  end
+
+  Storage[(NetApp SVM / iSCSI & NFS)]
+  Observability[(Prometheus / Grafana / Logging)]
+  ServiceMesh[(Istio / East-West Gateways)]
+
+  MG --> Observability
+  MG --> ServiceMesh
+  DC1A --> ServiceMesh
+  DC2 --> ServiceMesh
+  DC3 --> ServiceMesh
+
+  DC1A --- Storage
+  DC2 --- Storage
+  DC3 --- Storage
+
+  Internet[[Internet]]
+  CentralRouter["Central Transit Router\n(Transit + Internet Uplink)"]
+  EdgeRouter1["dc1manager VyOS Router\n(Site Router)"]
+  EdgeRouter2["dc2domain VyOS Router\n(Site Router)"]
+  EdgeRouter3["dc3domain VyOS Router\n(Site Router)"]
+
+  EdgeRouter1 -->|transit| CentralRouter
+  EdgeRouter2 -->|transit| CentralRouter
+  EdgeRouter3 -->|transit| CentralRouter
+  CentralRouter -->|egress| Internet
+
+  CentralRouter --> MG
+  EdgeRouter1 --> MG
+  EdgeRouter2 --> DC2
+  EdgeRouter3 --> DC3
+
+  click Storage "../configs/nodes/ip-matrix.md" "IP matrix & storage ranges"
+  click EdgeRouter1 "../configs/nodes/network/vyos/dc1manager.vyos" "dc1manager VyOS fragment"
+  click EdgeRouter2 "../configs/nodes/network/vyos/dc2domain.vyos" "dc2domain VyOS fragment"
+  click EdgeRouter3 "../configs/nodes/network/vyos/dc3domain.vyos" "dc3domain VyOS fragment"
+  click CentralRouter "../configs/nodes/network/vyos/central-router.vyos" "Central Transit VyOS fragment"

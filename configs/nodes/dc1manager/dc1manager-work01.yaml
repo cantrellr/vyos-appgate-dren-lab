@@ -1,26 +1,29 @@
 #cloud-config
-hostname: j64manager-work01
+hostname: dc1manager-work01
 write_files:
   - path: /etc/hosts
     content: |
       127.0.0.1 localhost
-      10.0.4.135 j64manager-work01
+      10.1.4.135 dc1manager-work01
 
 network:
   version: 2
   ethernets:
     eth0:
       dhcp4: false
-      addresses: [10.0.4.135/24]
-      gateway4: 10.0.4.1
+      addresses: [10.1.4.135/24]
+      gateway4: 10.1.4.1
       nameservers:
-        addresses: [10.0.4.2]
+        addresses: [10.1.4.2]
     eth1:
       dhcp4: false
-      addresses: [172.16.0.105/24]
+      addresses: [172.16.10.105/24]
     eth2:
       dhcp4: false
-      addresses: [1.0.0.135/25]
+      addresses: [192.168.1.135/24]
+    eth3:
+      dhcp4: false
+      addresses: [1.1.0.135/25]
 
 # NOTE: Set RKE2_URL and RKE2_TOKEN in the environment or cloud-init before installing agent
 runcmd:
@@ -37,4 +40,4 @@ node-label:
   - "node-role.kubernetes.io/worker=true"
 EOF
 
-final_message: "j64manager-work01 cloud-init applied (ensure RKE2_URL/TOKEN set)"
+final_message: "dc1manager-work01 cloud-init applied (ensure RKE2_URL/TOKEN set)"
