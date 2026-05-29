@@ -16,7 +16,7 @@ Each router is created with 1 CPU and 256MB RAM by default.
 #>
 
 param(
-        [string]$VhdPath = 'D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx',
+        [string]$VhdPath = 'D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.5.0-hyperv-amd64.vhdx',
 
         [string]$VirtualDiskRoot = 'D:\Production_Data\HyperV\Virtual Hard Disks\K8S',
 

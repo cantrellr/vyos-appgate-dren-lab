@@ -1,52 +1,68 @@
-%% Mermaid System Design Diagram - Multicluster Lab (dc* names)
-%% Shows high-level components: management cluster, app clusters, monitoring, storage, and network gateways
+%% Mermaid System Design Diagram - Cross-domain control and traffic summary
 
 flowchart LR
-  subgraph ManagementSite [dc1 — Management Site]
+  classDef mgmt fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#0f172a
+  classDef app fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0f172a
+  classDef net fill:#e2e8f0,stroke:#334155,stroke-width:2px,color:#0f172a
+  classDef svc fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#0f172a
+  classDef ext fill:#fee2e2,stroke:#991b1b,stroke-width:2px,color:#0f172a
+
+  subgraph ManagementSite["dc1 management and app site"]
     direction TB
-    MG["dc1manager Cluster\n(MongoDB, Monitoring, Istio CP)"]
-    MG -->|manages| DC1A["dc1domain Cluster\n(Apps: Rocket.Chat, NATS)"]
+    MG["dc1manager cluster<br/>control + operations services"]
+    DC1A["dc1domain cluster<br/>application services"]
+    MG -->|manages| DC1A
   end
 
-  subgraph RemoteSites [dc2/dc3 — Remote App Sites]
+  subgraph RemoteSites["remote app sites"]
     direction TB
-    DC2["dc2domain Cluster\n(Apps)"]
-    DC3["dc3domain Cluster\n(Apps)"]
+    DC2["dc2domain cluster<br/>application services"]
+    DC3["dc3domain cluster<br/>application services"]
   end
 
-  Storage[(NetApp SVM / iSCSI & NFS)]
-  Observability[(Prometheus / Grafana / Logging)]
-  ServiceMesh[(Istio / East-West Gateways)]
+  Storage[("NetApp storage<br/>iSCSI + NFS")]
+  Observability[("Prometheus/Grafana/logging")]
+  ServiceMesh[("Istio east-west gateways")]
 
-  MG --> Observability
+  Internet[["Internet"]]
+  Center["router-center<br/>transit + egress"]
+  R1["router-dc1"]
+  R2["router-dc2"]
+  R3["router-dc3"]
+  ExtSwitch["cotpa-vlans_vsw<br/>external switch"]
+
+  R1 -->|transit| Center
+  R2 -->|transit| Center
+  R3 -->|transit| Center
+  ExtSwitch --> Center
+  Center -->|VLAN 9 egress| Internet
+
   MG --> ServiceMesh
   DC1A --> ServiceMesh
   DC2 --> ServiceMesh
   DC3 --> ServiceMesh
 
-  DC1A --- Storage
-  DC2 --- Storage
-  DC3 --- Storage
+  MG -.-> Observability
+  DC1A -.-> Observability
+  DC2 -.-> Observability
+  DC3 -.-> Observability
 
-  Internet[[Internet]]
-  CentralRouter["VyOS: router-center\n(Transit + Internet Uplink)"]
-  EdgeRouter1["router-dc1\n(Site Router)"]
-  EdgeRouter2["router-dc2\n(Site Router)"]
-  EdgeRouter3["router-dc3\n(Site Router)"]
-  ExtSwitch["cotpa-vlans_vsw\n(External Switch)"]
+  DC1A -.-> Storage
+  DC2 -.-> Storage
+  DC3 -.-> Storage
 
-  EdgeRouter1 -->|transit| CentralRouter
-  EdgeRouter2 -->|transit| CentralRouter
-  EdgeRouter3 -->|transit| CentralRouter
-  ExtSwitch --> CentralRouter
-  CentralRouter -->|VLAN 9 egress| Internet
+  Center --> MG
+  R1 --> DC1A
+  R2 --> DC2
+  R3 --> DC3
 
-  CentralRouter --> MG
-  EdgeRouter1 --> MG
-  EdgeRouter2 --> DC2
-  EdgeRouter3 --> DC3
+  class MG mgmt
+  class DC1A,DC2,DC3 app
+  class Center,R1,R2,R3,ExtSwitch net
+  class Storage,Observability,ServiceMesh svc
+  class Internet ext
 
-  click CentralRouter "../scripts/create-vyos-routers.ps1" "Router provisioning script"
-  click MG "../configs/home-lab/nodes/dc1manager-ctrl01.yaml" "Management cluster node manifest"
-  click DC2 "../configs/home-lab/nodes/dc2domain-ctrl01.yaml" "dc2 cluster node manifest"
-  click DC3 "../configs/home-lab/nodes/dc3domain-ctrl01.yaml" "dc3 cluster node manifest"
+  click Center "../scripts/create-vyos-routers.ps1" "Router provisioning script"
+  click MG "../configs/home-lab/nodes/dc1manager-ctrl01.yaml" "Management cluster manifest"
+  click DC2 "../configs/home-lab/nodes/dc2domain-ctrl01.yaml" "dc2 cluster manifest"
+  click DC3 "../configs/home-lab/nodes/dc3domain-ctrl01.yaml" "dc3 cluster manifest"

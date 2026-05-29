@@ -1,0 +1,104 @@
+%% Mermaid Systems View - Clusters and Workloads (1-foot engineering view)
+%% Full node hostnames and interface IP design with shared platform relationships.
+
+flowchart LR
+  classDef mgmtctrl fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#0f172a
+  classDef appctrl fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0f172a
+  classDef worker fill:#f0f9ff,stroke:#0284c7,stroke-width:1.5px,color:#0f172a
+  classDef gw fill:#e2e8f0,stroke:#334155,stroke-width:2px,color:#0f172a
+  classDef svc fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#0f172a
+  classDef infra fill:#fef3c7,stroke:#92400e,stroke-width:2px,color:#0f172a
+
+  subgraph SITE1["dc1 site"]
+    direction TB
+
+    subgraph DC1M["dc1manager cluster (management)"]
+      direction TB
+      m1c["dc1manager-ctrl01 (control)<br/>eth0 10.1.4.131<br/>eth1 172.16.10.101<br/>eth2 192.168.1.131<br/>eth3 1.1.0.131"]
+      m1w1["dc1manager-work01 (worker)<br/>eth0 10.1.4.135<br/>eth1 172.16.10.105<br/>eth2 192.168.1.135<br/>eth3 1.1.0.135"]
+      m1w2["dc1manager-work02 (worker)<br/>eth0 10.1.4.139<br/>eth1 172.16.10.109<br/>eth2 192.168.1.139<br/>eth3 1.1.0.139"]
+    end
+
+    subgraph DC1D["dc1domain cluster"]
+      direction TB
+      d1c["dc1domain-ctrl01 (control)<br/>eth0 10.1.4.141<br/>eth1 172.16.10.111<br/>eth2 192.168.1.141<br/>eth3 1.1.0.141"]
+      d1w1["dc1domain-work01 (worker)<br/>eth0 10.1.4.145<br/>eth1 172.16.10.113<br/>eth2 192.168.1.145<br/>eth3 1.1.0.145"]
+      d1w2["dc1domain-work02 (worker)<br/>eth0 10.1.4.149<br/>eth1 172.16.10.117<br/>eth2 192.168.1.149<br/>eth3 1.1.0.149"]
+    end
+  end
+
+  subgraph SITE2["dc2 site"]
+    direction TB
+
+    subgraph DC2D["dc2domain cluster"]
+      direction TB
+      d2c["dc2domain-ctrl01 (control)<br/>eth0 10.2.4.161<br/>eth1 172.16.20.116<br/>eth2 192.168.2.161<br/>eth3 1.2.0.161"]
+      d2w1["dc2domain-work01 (worker)<br/>eth0 10.2.4.165<br/>eth1 172.16.20.120<br/>eth2 192.168.2.165<br/>eth3 1.2.0.165"]
+      d2w2["dc2domain-work02 (worker)<br/>eth0 10.2.4.169<br/>eth1 172.16.20.124<br/>eth2 192.168.2.169<br/>eth3 1.2.0.169"]
+    end
+  end
+
+  subgraph SITE3["dc3 site"]
+    direction TB
+
+    subgraph DC3D["dc3domain cluster"]
+      direction TB
+      d3c["dc3domain-ctrl01 (control)<br/>eth0 10.3.4.181<br/>eth1 172.16.30.123<br/>eth2 192.168.3.181<br/>eth3 1.3.0.181"]
+      d3w1["dc3domain-work01 (worker)<br/>eth0 10.3.4.185<br/>eth1 172.16.30.127<br/>eth2 192.168.3.185<br/>eth3 1.3.0.185"]
+      d3w2["dc3domain-work02 (worker)<br/>eth0 10.3.4.189<br/>eth1 172.16.30.131<br/>eth2 192.168.3.189<br/>eth3 1.3.0.189"]
+    end
+  end
+
+
+  subgraph nicMap["Network Interface Mapping"]
+    direction TB
+      nicmap["NIC map<br/>eth0 = kubes<br/>eth1 = storage<br/>eth2 = domain<br/>eth3 = seg1"]
+  end
+
+  subgraph mgmtWorkloads["Management Workloads"]
+    mgmtsvc["MongoDB Ops<br/>Prometheus/Grafana<br/>Istio Control Plane"]
+  end
+
+  subgraph appWorkloads["Application Workloads"]
+    appsvc1["Keycloak<br/>PostgreSQL<br/>Rocket.Chat<br/>NATS<br/>MongoDB"]
+  end
+
+  subgraph monitorPlatform["Observability"]
+    direction TB
+    obs[("Prometheus/Grafana")]
+  end
+
+  subgraph meshPlatform["Service Mesh"]
+    mesh[("Istio East-West Gateways")]
+  end
+
+  subgraph storagePlatform["Shared Storage"]
+    storage[("NetApp iSCSI/NFS")]
+  end
+
+  DC1M --> mgmtWorkloads
+  DC1D --> appWorkloads
+  DC2D --> appWorkloads
+  DC3D --> appWorkloads
+
+  mgmtWorkloads -->|operates| mesh
+  appWorkloads --> mesh
+
+  mgmtWorkloads -.-> obs
+  appWorkloads -.-> obs
+
+  appWorkloads -.-> storage
+
+
+  class m1c,d1c,d2c,d3c mgmtctrl
+  class m1w1,m1w2,d1w1,d1w2,d2w1,d2w2,d3w1,d3w2 worker
+  class d1c,d2c,d3c appctrl
+  class dc1gw,dc2gw,dc3gw gw
+  class mgmtWorkloads,appWorkloads,mesh,obs,storage svc
+  class routing,nicmap infra
+
+  click routing "../diagrams/Network-Topology.mmd" "Detail network view"
+  click m1c "../configs/home-lab/nodes/dc1manager-ctrl01.yaml" "dc1manager control-plane manifest"
+  click d1c "../configs/home-lab/nodes/dc1domain-ctrl01.yaml" "dc1domain control-plane manifest"
+  click d2c "../configs/home-lab/nodes/dc2domain-ctrl01.yaml" "dc2domain control-plane manifest"
+  click d3c "../configs/home-lab/nodes/dc3domain-ctrl01.yaml" "dc3domain control-plane manifest"

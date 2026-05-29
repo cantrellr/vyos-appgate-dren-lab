@@ -31,10 +31,22 @@ Integration points & external dependencies
 
 Where to look for examples
 - Deployment runbook: `docs/Runbook.md`.
-- Home-lab diagrams: `diagrams/Network-Topology.mmd`, `diagrams/System-Design.mmd`.
+- Home-lab diagrams:
+  - `diagrams/Architecture-Overview.mmd` (component-complete architecture overview)
+  - `diagrams/Clusters-and-Workloads.mmd` (engineering systems view with node/NIC/IP detail)
+  - `diagrams/Network-Topology.mmd` (Hyper-V and routing topology detail)
+  - `diagrams/System-Design.mmd` (cross-domain control and traffic summary)
 - Router configs: `configs/home-lab/routers/*.vyos`.
 - Node manifests: `configs/home-lab/nodes/*.yaml`.
 - Automation scripts: `scripts/create-vyos-routers.ps1`, `scripts/create-multicluster-vms.ps1`.
+
+How to reason about the design (for coding agents)
+- What the diagram stack is:
+  - A progressive zoom model from architecture -> systems -> topology, with a companion control/traffic summary.
+- What the diagram stack does:
+  - Keeps naming and routing intent consistent while exposing deeper implementation detail at each step.
+- How the full design works:
+  - Site clusters attach to site routers via site switches, site routers converge on transit, `router-center` provides Internet egress on VLAN 9, and shared platform services (mesh/obs/storage) span clusters.
 
 How to make safe edits (recommended steps)
 1. Read the relevant files under `configs/home-lab/`.

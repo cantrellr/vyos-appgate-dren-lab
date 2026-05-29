@@ -2,6 +2,19 @@
 
 Related architecture reference: `docs/System-Design.md`.
 
+Diagram order for operations context:
+
+1. `diagrams/Architecture-Overview.mmd`
+2. `diagrams/Clusters-and-Workloads.mmd`
+3. `diagrams/Network-Topology.mmd`
+
+How to use the diagrams during operations:
+
+- `Architecture-Overview.mmd`: Understand what components exist and how traffic/control domains connect.
+- `Clusters-and-Workloads.mmd`: Validate what clusters/nodes are expected and how interfaces map to site networks.
+- `Network-Topology.mmd`: Troubleshoot specific switch/subnet/router path issues.
+- `System-Design.mmd`: Quick cross-domain summary when reviewing control vs data-plane flow.
+
 ## Prerequisites
 
 - Windows host with Hyper-V enabled

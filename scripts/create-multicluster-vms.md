@@ -39,3 +39,22 @@ Notes
 - VM files are created under `configs\home-lab\vms\nodes\<vm-name>`.
 - Node VHDX clones are created at `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<vm-name>\<vm-name>.vhdx` by default.
 - Existing VMs are skipped.
+
+Diagram integration
+
+What it is:
+
+- Node provisioning script that materializes the cluster/node layer represented in the systems and topology diagrams.
+
+What it does in the diagrams:
+
+- Creates the node inventory shown in `diagrams/Clusters-and-Workloads.mmd`.
+- Populates the site switch segments and node-group expectations used by `diagrams/Network-Topology.mmd`.
+- Implements the cluster layout assumed by `diagrams/Architecture-Overview.mmd` and `diagrams/System-Design.mmd`.
+
+How it works with the full design:
+
+1. Consumes the switch fabric built by `create-vyos-routers.ps1`.
+2. Creates all 12 node VMs with deterministic `eth0..eth3` mapping.
+3. Clones per-node disks under the K8S VHDX root path.
+4. Produces the VM layer that receives node YAML manifests from `configs/home-lab/nodes/`.

@@ -1,0 +1,116 @@
+%% Mermaid Architecture Overview - Home Lab
+%% Component-complete overview using the same subgraph-first format as the systems diagram.
+
+flowchart LR
+  classDef mgmt fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#0f172a
+  classDef app fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0f172a
+  classDef infra fill:#e2e8f0,stroke:#334155,stroke-width:2px,color:#0f172a
+  classDef svc fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#0f172a
+  classDef meshov fill:#f3e8ff,stroke:#7e22ce,stroke-width:2px,color:#0f172a
+  classDef ext fill:#fee2e2,stroke:#991b1b,stroke-width:2px,color:#0f172a
+
+  subgraph SITE1["dc1 site"]
+    direction TB
+    dc1mgr["dc1manager cluster<br/>management plane"]
+    dc1app["dc1domain cluster<br/>application plane"]
+    r1["router-dc1"]
+    sw1["vSwitch-dc1-kubes<br/>vSwitch-dc1-storage<br/>vSwitch-dc1-domain<br/>vSwitch-dc1-seg1"]
+  end
+
+  subgraph SITE2["dc2 site"]
+    direction TB
+    dc2app["dc2domain cluster"]
+    r2["router-dc2"]
+    sw2["vSwitch-dc2-kubes<br/>vSwitch-dc2-storage<br/>vSwitch-dc2-domain<br/>vSwitch-dc2-seg1"]
+  end
+
+  subgraph SITE3["dc3 site"]
+    direction TB
+    dc3app["dc3domain cluster"]
+    r3["router-dc3"]
+    sw3["vSwitch-dc3-kubes<br/>vSwitch-dc3-storage<br/>vSwitch-dc3-domain<br/>vSwitch-dc3-seg1"]
+  end
+
+  subgraph FABRIC["central routing and egress"]
+    direction TB
+    transit["vSwitch-transit"]
+    center["router-center"]
+    extsw["cotpa-vlans_vsw"]
+    internet[["Internet"]]
+  end
+
+  subgraph MGMTW["management workloads"]
+    direction TB
+    mgmtsvc["MongoDB Ops<br/>Prometheus/Grafana<br/>Istio control plane"]
+  end
+
+  subgraph APPW["application workloads"]
+    direction TB
+    appsvc["Keycloak<br/>PostgreSQL<br/>Rocket.Chat<br/>NATS<br/>MongoDB"]
+  end
+
+  subgraph ISTIO["Istio Service Mesh Overlay"]
+    direction TB
+    meshcp["Istio control plane<br/>dc1manager cluster"]
+    gw1["dc1 east-west gateway"]
+    gw2["dc2 east-west gateway"]
+    gw3["dc3 east-west gateway"]
+    sidecars["sidecars in workload pods"]
+  end
+
+  subgraph PLATFORM["shared platform services"]
+    direction TB
+    obs[("Prometheus/Grafana observability")]
+    storage[("NetApp iSCSI/NFS")]
+  end
+
+  dc1mgr --> sw1
+  dc1app --> sw1
+  sw1 --> r1
+
+  dc2app --> sw2
+  sw2 --> r2
+
+  dc3app --> sw3
+  sw3 --> r3
+
+  r1 -->|transit| transit
+  r2 -->|transit| transit
+  r3 -->|transit| transit
+  transit --> center
+  extsw --> center
+  center -->|VLAN 9 egress| internet
+
+  dc1mgr --> mgmtsvc
+  dc1app --> appsvc
+  dc2app --> appsvc
+  dc3app --> appsvc
+
+  mgmtsvc -->|operates| meshcp
+  appsvc -->|uses| sidecars
+  sidecars --> gw1
+  sidecars --> gw2
+  sidecars --> gw3
+  dc1app -.-> gw1
+  dc2app -.-> gw2
+  dc3app -.-> gw3
+  gw1 <-->|east-west mTLS| gw2
+  gw2 <-->|east-west mTLS| gw3
+  mgmtsvc -.-> obs
+  appsvc -.-> obs
+  appsvc -.-> storage
+
+  class dc1mgr,mgmtsvc mgmt
+  class dc1app,dc2app,dc3app,appsvc app
+  class r1,r2,r3,transit,center,extsw,sw1,sw2,sw3 infra
+  class obs,storage svc
+  class meshcp,gw1,gw2,gw3,sidecars meshov
+  class internet ext
+
+  click center "../scripts/create-vyos-routers.ps1" "Router provisioning script"
+  click dc1mgr "../configs/home-lab/nodes/dc1manager-ctrl01.yaml" "dc1manager cluster manifest"
+  click dc1app "../configs/home-lab/nodes/dc1domain-ctrl01.yaml" "dc1domain cluster manifest"
+  click dc2app "../configs/home-lab/nodes/dc2domain-ctrl01.yaml" "dc2domain cluster manifest"
+  click dc3app "../configs/home-lab/nodes/dc3domain-ctrl01.yaml" "dc3domain cluster manifest"
+  click meshcp "../diagrams/Clusters-and-Workloads.mmd" "Systems detail view"
+  click appsvc "../diagrams/Clusters-and-Workloads.mmd" "Systems detail view"

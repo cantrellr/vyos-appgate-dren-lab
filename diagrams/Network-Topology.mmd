@@ -1,94 +1,102 @@
-%% Mermaid Network Topology Diagram - Multicluster Home Lab
-%% Shows per-site networks, vSwitches, routers, and node NIC attachments
+%% Mermaid Network Topology Diagram - Home Lab Detail View
+%% Detail architecture: Hyper-V switches, site routers, node groups, and uplink path.
 
-flowchart TB
+flowchart LR
+  classDef router fill:#f5d0a9,stroke:#9a3412,stroke-width:2px,color:#1f2937
+  classDef sw fill:#dbe4ee,stroke:#334155,stroke-width:1.5px,color:#0f172a
+  classDef nodegroup fill:#dbeafe,stroke:#1d4ed8,stroke-width:1.5px,color:#0f172a
+  classDef map fill:#ecfeff,stroke:#0e7490,stroke-width:1.5px,color:#0f172a
+  classDef ext fill:#fee2e2,stroke:#991b1b,stroke-width:2px,color:#1f2937
+
   subgraph DC1 [dc1 Site]
-    direction LR
-    vsw1["vSwitch-dc1-kubes"]
-    vsw1s["vSwitch-dc1-storage (netapp-1001)"]
-    vdom["vSwitch-dc1-domain (management)"]
-    vseg["vSwitch-dc1-seg1 (segment1)"]
-    router1["VyOS: router-dc1"]
-    vsw1 --> router1
-    vsw1s --> router1
-    vdom --> router1
-    vseg --> router1
+    direction TB
+    d1k["vSwitch-dc1-kubes<br/>10.1.4.0/24"]
+    d1s["vSwitch-dc1-storage<br/>172.16.10.0/24"]
+    d1d["vSwitch-dc1-domain<br/>192.168.1.0/24"]
+    d1g["vSwitch-dc1-seg1<br/>1.1.0.0/24"]
+    r1["VyOS: router-dc1<br/>GW: .1 on each dc1 subnet"]
 
-    subgraph DC1Nodes [Nodes]
-      direction TB
-      n1["dc1manager-ctrl01\neth0:10.1.4.131\neth1:172.16.10.101\neth2:192.168.1.131\neth3:1.1.0.131"]
-      n2["dc1manager-work01\neth0:10.1.4.135\neth1:172.16.10.105\neth2:192.168.1.135\neth3:1.1.0.135"]
-      n1 --- vsw1
-      n1 --- vsw1s
-      n1 --- vdom
-      n1 --- vseg
-      n2 --- vsw1
-      n2 --- vsw1s
-      n2 --- vdom
-      n2 --- vseg
-    end
+    d1map["dc1 NIC map<br/>eth0 -> kubes<br/>eth1 -> storage<br/>eth2 -> domain<br/>eth3 -> seg1"]
+    d1nodes["dc1 nodes (6)<br/>dc1manager-ctrl01<br/>dc1manager-work01<br/>dc1manager-work02<br/>dc1domain-ctrl01<br/>dc1domain-work01<br/>dc1domain-work02"]
+
+    d1k --> r1
+    d1s --> r1
+    d1d --> r1
+    d1g --> r1
+
+    d1nodes --> d1map
+    d1map --> d1k
+    d1map --> d1s
+    d1map --> d1d
+    d1map --> d1g
   end
 
   subgraph DC2 [dc2 Site]
-    direction LR
-    v2["vSwitch-dc2-kubes"]
-    v2s["vSwitch-dc2-storage"]
-    v2d["vSwitch-dc2-domain"]
-    v2g["vSwitch-dc2-seg1"]
-    router2["VyOS: router-dc2"]
-    v2 --> router2
-    v2s --> router2
-    v2d --> router2
-    v2g --> router2
+    direction TB
+    d2k["vSwitch-dc2-kubes<br/>10.2.4.0/24"]
+    d2s["vSwitch-dc2-storage<br/>172.16.20.0/24"]
+    d2d["vSwitch-dc2-domain<br/>192.168.2.0/24"]
+    d2g["vSwitch-dc2-seg1<br/>1.2.0.0/24"]
+    r2["VyOS: router-dc2<br/>GW: .1 on each dc2 subnet"]
 
-    n3["dc2domain-ctrl01\neth0:10.2.4.161\neth1:172.16.20.116\neth2:192.168.2.161\neth3:1.2.0.161"]
-    n4["dc2domain-work01\neth0:10.2.4.165\neth1:172.16.20.120\neth2:192.168.2.165\neth3:1.2.0.165"]
-    n3 --- v2
-    n3 --- v2s
-    n3 --- v2d
-    n3 --- v2g
-    n4 --- v2
-    n4 --- v2s
-    n4 --- v2d
-    n4 --- v2g
+    d2map["dc2 NIC map<br/>eth0 -> kubes<br/>eth1 -> storage<br/>eth2 -> domain<br/>eth3 -> seg1"]
+    d2nodes["dc2 nodes (3)<br/>dc2domain-ctrl01<br/>dc2domain-work01<br/>dc2domain-work02"]
+
+    d2k --> r2
+    d2s --> r2
+    d2d --> r2
+    d2g --> r2
+
+    d2nodes --> d2map
+    d2map --> d2k
+    d2map --> d2s
+    d2map --> d2d
+    d2map --> d2g
   end
 
   subgraph DC3 [dc3 Site]
-    direction LR
-    v3["vSwitch-dc3-kubes"]
-    v3s["vSwitch-dc3-storage"]
-    v3d["vSwitch-dc3-domain"]
-    v3g["vSwitch-dc3-seg1"]
-    router3["VyOS: router-dc3"]
-    v3 --> router3
-    v3s --> router3
-    v3d --> router3
-    v3g --> router3
+    direction TB
+    d3k["vSwitch-dc3-kubes<br/>10.3.4.0/24"]
+    d3s["vSwitch-dc3-storage<br/>172.16.30.0/24"]
+    d3d["vSwitch-dc3-domain<br/>192.168.3.0/24"]
+    d3g["vSwitch-dc3-seg1<br/>1.3.0.0/24"]
+    r3["VyOS: router-dc3<br/>GW: .1 on each dc3 subnet"]
 
-    n5["dc3domain-ctrl01\neth0:10.3.4.181\neth1:172.16.30.123\neth2:192.168.3.181\neth3:1.3.0.181"]
-    n6["dc3domain-work01\neth0:10.3.4.185\neth1:172.16.30.127\neth2:192.168.3.185\neth3:1.3.0.185"]
-    n5 --- v3
-    n5 --- v3s
-    n5 --- v3d
-    n5 --- v3g
-    n6 --- v3
-    n6 --- v3s
-    n6 --- v3d
-    n6 --- v3g
+    d3map["dc3 NIC map<br/>eth0 -> kubes<br/>eth1 -> storage<br/>eth2 -> domain<br/>eth3 -> seg1"]
+    d3nodes["dc3 nodes (3)<br/>dc3domain-ctrl01<br/>dc3domain-work01<br/>dc3domain-work02"]
+
+    d3k --> r3
+    d3s --> r3
+    d3d --> r3
+    d3g --> r3
+
+    d3nodes --> d3map
+    d3map --> d3k
+    d3map --> d3s
+    d3map --> d3d
+    d3map --> d3g
   end
 
-  %% Inter-site connectivity: each site router connects to Central Transit Router.
-  transit["vSwitch-transit (internal)"]
-  router2 -->|transit| central["VyOS: router-center\n(10.254.0.1)"]
-  router3 -->|transit| central
-  router1 -->|transit| central
-  central --- transit
+  transit["vSwitch-transit<br/>10.254.0.0/24"]
+  central["VyOS: router-center<br/>10.254.0.1"]
+  extsw["cotpa-vlans_vsw<br/>external switch"]
+  internet[["Internet"]]
 
-  extsw["cotpa-vlans_vsw\n(external switch)"]
+  r1 -->|10.254.0.2 transit| transit
+  r2 -->|10.254.0.3 transit| transit
+  r3 -->|10.254.0.4 transit| transit
+  transit --> central
+
   extsw --> central
-  central -->|VLAN 9 egress| Internet[[Internet]]
+  central -->|VLAN 9 egress| internet
+
+  class r1,r2,r3,central router
+  class d1k,d1s,d1d,d1g,d2k,d2s,d2d,d2g,d3k,d3s,d3d,d3g,transit sw
+  class d1nodes,d2nodes,d3nodes nodegroup
+  class d1map,d2map,d3map map
+  class extsw,internet ext
 
   click central "../scripts/create-vyos-routers.ps1" "Router provisioning script"
-  click n1 "../configs/home-lab/nodes/dc1manager-ctrl01.yaml" "dc1manager control node manifest"
-  click n3 "../configs/home-lab/nodes/dc2domain-ctrl01.yaml" "dc2domain control node manifest"
-  click n5 "../configs/home-lab/nodes/dc3domain-ctrl01.yaml" "dc3domain control node manifest"
+  click d1nodes "../configs/home-lab/nodes/dc1manager-work02.yaml" "dc1 work02 manifest"
+  click d2nodes "../configs/home-lab/nodes/dc2domain-work02.yaml" "dc2 work02 manifest"
+  click d3nodes "../configs/home-lab/nodes/dc3domain-work02.yaml" "dc3 work02 manifest"
