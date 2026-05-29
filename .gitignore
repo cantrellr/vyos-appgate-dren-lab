@@ -3,6 +3,6 @@
 .DS_Store
 
 # Hyper-V generated VM disks and runtime outputs
-configs/nodes/vms/
-configs/nodes/vyos/
+configs/home-lab/vms/nodes/
+configs/home-lab/vms/vyos/
 artifacts/vyos-config-iso/

@@ -5,11 +5,11 @@
 
 Behavior summary
 
-- Creates 8 node VMs:
-  - `dc1manager-ctrl01`, `dc1manager-work01`
-  - `dc1domain-ctrl01`, `dc1domain-work01`
-  - `dc2domain-ctrl01`, `dc2domain-work01`
-  - `dc3domain-ctrl01`, `dc3domain-work01`
+- Creates 12 node VMs:
+  - `dc1manager-ctrl01`, `dc1manager-work01`, `dc1manager-work02`
+  - `dc1domain-ctrl01`, `dc1domain-work01`, `dc1domain-work02`
+  - `dc2domain-ctrl01`, `dc2domain-work01`, `dc2domain-work02`
+  - `dc3domain-ctrl01`, `dc3domain-work01`, `dc3domain-work02`
 - VM sizing for each node:
   - Generation 2
   - 1 vCPU
@@ -24,6 +24,7 @@ Behavior summary
 Parameters
 
 - `-VhdPath` (required): Base OS VHDX to copy for each VM.
+- `-VirtualDiskRoot` (optional): Parent folder for per-node cloned VHDX files. Default: `D:\Production_Data\HyperV\Virtual Hard Disks\K8S`.
 - `-SwitchPrefix` (optional, default `vSwitch-`): Prefix for switch names.
 
 Usage
@@ -35,5 +36,6 @@ Usage
 Notes
 
 - Script expects vSwitches to exist before VM creation.
-- VM files are created under `configs\nodes\vms\<vm-name>`.
+- VM files are created under `configs\home-lab\vms\nodes\<vm-name>`.
+- Node VHDX clones are created at `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<vm-name>\<vm-name>.vhdx` by default.
 - Existing VMs are skipped.

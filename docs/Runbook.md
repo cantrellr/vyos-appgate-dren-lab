@@ -1,5 +1,7 @@
 # Runbook - Home-Lab Multicluster
 
+Related architecture reference: `docs/System-Design.md`.
+
 ## Prerequisites
 
 - Windows host with Hyper-V enabled
@@ -33,6 +35,7 @@ Expected result:
 - 12 node VMs total
 - Per cluster: 1 controller + 2 workers
 - Per node: 1 vCPU, 4 GB RAM, 4 NICs (`eth0`..`eth3`)
+- Node disks cloned to: `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<node-name>\<node-name>.vhdx`
 
 ## 3) Apply configs/manifests
 

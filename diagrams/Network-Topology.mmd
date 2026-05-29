@@ -79,14 +79,14 @@ flowchart TB
 
   %% Inter-site connectivity: each site router connects to Central Transit Router.
   transit["vSwitch-transit (internal)"]
-  router2 -->|transit| central["Central Transit Router\n(10.254.0.1)"]
+  router2 -->|transit| central["VyOS: router-center\n(10.254.0.1)"]
   router3 -->|transit| central
   router1 -->|transit| central
   central --- transit
 
   extsw["cotpa-vlans_vsw\n(external switch)"]
-  extsw -->|VLAN 9 uplink| central
-  central -->|Internet| Internet[[Internet]]
+  extsw --> central
+  central -->|VLAN 9 egress| Internet[[Internet]]
 
   click central "../scripts/create-vyos-routers.ps1" "Router provisioning script"
   click n1 "../configs/home-lab/nodes/dc1manager-ctrl01.yaml" "dc1manager control node manifest"

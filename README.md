@@ -14,6 +14,7 @@ This repository is now scoped to a Hyper-V home-lab with:
 - Router provisioning: `scripts/create-vyos-routers.ps1`
 - Node VM provisioning: `scripts/create-multicluster-vms.ps1`
 - Runbook: `docs/Runbook.md`
+- System design: `docs/System-Design.md`
 - Diagrams: `diagrams/Network-Topology.mmd`, `diagrams/System-Design.mmd`
 
 ## Hyper-V workflow
@@ -36,4 +37,5 @@ This repository is now scoped to a Hyper-V home-lab with:
 - Site and transit switches are internal.
 - Router default sizing is 1 vCPU and 256 MB RAM.
 - Router VHDX clones default to `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<router-name>\<router-name>.vhdx`.
+- Node VHDX clones default to `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<node-name>\<node-name>.vhdx`.
 - Node default sizing is 1 vCPU and 4 GB RAM.

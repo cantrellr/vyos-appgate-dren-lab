@@ -29,17 +29,17 @@ flowchart LR
   DC3 --- Storage
 
   Internet[[Internet]]
-  CentralRouter["Central Transit Router\n(Transit + Internet Uplink)"]
+  CentralRouter["VyOS: router-center\n(Transit + Internet Uplink)"]
   EdgeRouter1["router-dc1\n(Site Router)"]
   EdgeRouter2["router-dc2\n(Site Router)"]
   EdgeRouter3["router-dc3\n(Site Router)"]
-  ExtSwitch["cotpa-vlans_vsw\n(External Switch VLAN 9)"]
+  ExtSwitch["cotpa-vlans_vsw\n(External Switch)"]
 
   EdgeRouter1 -->|transit| CentralRouter
   EdgeRouter2 -->|transit| CentralRouter
   EdgeRouter3 -->|transit| CentralRouter
-  ExtSwitch -->|eth0 VLAN 9| CentralRouter
-  CentralRouter -->|egress| Internet
+  ExtSwitch --> CentralRouter
+  CentralRouter -->|VLAN 9 egress| Internet
 
   CentralRouter --> MG
   EdgeRouter1 --> MG

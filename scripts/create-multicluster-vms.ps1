@@ -11,13 +11,15 @@ The user will supply the path to the base VHDX image to attach to each VM. It wi
 param(
     [Parameter(Mandatory=$true)]
     [string]$VhdPath,
+    [string]$VirtualDiskRoot = 'D:\Production_Data\HyperV\Virtual Hard Disks\K8S',
     [string]$SwitchPrefix = 'vSwitch-'
 )
 
 if (-not (Test-Path $VhdPath)) { Write-Error "VHD path $VhdPath not found"; exit 1 }
 
-$vmRoot = "$PSScriptRoot\..\configs\nodes\vms"
+$vmRoot = "$PSScriptRoot\..\configs\home-lab\vms\nodes"
 New-Item -Path $vmRoot -ItemType Directory -Force | Out-Null
+New-Item -Path $VirtualDiskRoot -ItemType Directory -Force | Out-Null
 
 function siteSwitches($site) {
     return @(
@@ -72,8 +74,11 @@ foreach ($node in $nodes) {
     Add-VMNetworkAdapter -VMName $vmName -SwitchName $swDomain -Name "eth2" | Out-Null
     Add-VMNetworkAdapter -VMName $vmName -SwitchName $swSeg1 -Name "eth3" | Out-Null
 
-    # Attach existing VHD as drive
-    $destVhd = "$vmRoot\$vmName\$vmName.vhdx"
+    # Copy node disk to the shared Hyper-V K8S disk root and attach it.
+    $diskPath = Join-Path $VirtualDiskRoot $vmName
+    New-Item -Path $diskPath -ItemType Directory -Force | Out-Null
+
+    $destVhd = Join-Path $diskPath "$vmName.vhdx"
     Copy-Item -Path $VhdPath -Destination $destVhd -Force
     Add-VMHardDiskDrive -VMName $vmName -Path $destVhd
 

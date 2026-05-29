@@ -36,7 +36,7 @@ if (-not (Test-Path $VhdPath)) {
 
 New-Item -Path $VirtualDiskRoot -ItemType Directory -Force | Out-Null
 
-$vmRoot = Join-Path $PSScriptRoot '..\configs\nodes\vyos'
+$vmRoot = Join-Path $PSScriptRoot '..\configs\home-lab\vms\vyos'
 New-Item -Path $vmRoot -ItemType Directory -Force | Out-Null
 
 function Get-SiteSwitches {
