@@ -12,30 +12,31 @@ Behavior summary
   - `vSwitch-dcX-seg1`
 - Creates/ensures `vSwitch-transit` as an internal switch.
 - Creates four router VMs from a base VHDX:
-  - `central-router`
-  - `dc1manager-router`
-  - `dc2domain-router`
-  - `dc3domain-router`
-- VM sizing: Generation 2, 1 vCPU, 4 GB startup memory.
+  - `router-center`
+  - `router-dc1`
+  - `router-dc2`
+  - `router-dc3`
+- VM sizing: Generation 2, 1 vCPU, 256 MB startup memory.
 - Uplink policy:
-  - Only `central-router` attaches to the external switch.
-  - `central-router` `eth0` is set to VLAN 9 access mode.
+  - Only `router-center` attaches to the external switch.
+  - `router-center` `eth0` is set to VLAN 9 access mode.
 
 Parameters
 
-- `-VhdPath` (required): Source VyOS VHDX to clone per VM.
+- `-VhdPath` (optional): Source VyOS VHDX to clone per VM. Default: `D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx`.
+- `-VirtualDiskRoot` (optional): Parent folder for per-router cloned VHDX files. Default: `D:\Production_Data\HyperV\Virtual Hard Disks\K8S`.
 - `-SwitchPrefix` (optional, default `vSwitch-`): Prefix used for internal switches.
 - `-ExternalSwitchName` (optional, default `cotpa-vlans_vsw`): Existing external Hyper-V switch used by central router.
-- `-ExternalVlanId` (optional, default `9`): VLAN ID applied to `central-router` `eth0`.
+- `-ExternalVlanId` (optional, default `9`): VLAN ID applied to `router-center` `eth0`.
 
 Usage
 
 ```powershell
-.\scripts\create-vyos-routers.ps1 -VhdPath "C:\images\vyos.vhdx" -ExternalSwitchName "cotpa-vlans_vsw" -ExternalVlanId 9
+.\scripts\create-vyos-routers.ps1 -ExternalSwitchName "cotpa-vlans_vsw" -ExternalVlanId 9
 ```
 
 Notes
 
 - The external switch must already exist.
 - The script is idempotent for switches and skips VMs that already exist.
-- VM files are created under `configs\nodes\vyos\<vm-name>`.
+- Router VHDX clones are created at `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<vm-name>\<vm-name>.vhdx` by default.

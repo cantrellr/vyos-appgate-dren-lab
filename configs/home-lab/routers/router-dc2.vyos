@@ -1,0 +1,35 @@
+# router-dc2.vyos - site router for the dc2domain cluster
+
+set system host-name 'router-dc2'
+
+# kubes-domain network (Kubernetes management)
+set interfaces ethernet eth0 description 'dc2 kubes-domain'
+set interfaces ethernet eth0 address '10.2.4.1/24'
+
+# storage network
+set interfaces ethernet eth1 description 'dc2 storage'
+set interfaces ethernet eth1 address '172.16.20.1/24'
+
+# domain management network
+set interfaces ethernet eth2 description 'dc2 domain management'
+set interfaces ethernet eth2 address '192.168.2.1/24'
+
+# segment1 network
+set interfaces ethernet eth3 description 'dc2 segment1'
+set interfaces ethernet eth3 address '1.2.0.1/24'
+
+# transit link
+set interfaces ethernet eth4 description 'transit'
+set interfaces ethernet eth4 address '10.254.0.3/24'
+
+# Default route to central router
+set protocols static route 0.0.0.0/0 next-hop '10.254.0.1'
+
+# Permissive firewall posture
+set firewall ipv4 input filter default-action 'accept'
+set firewall ipv4 forward filter default-action 'accept'
+set firewall ipv4 output filter default-action 'accept'
+
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'

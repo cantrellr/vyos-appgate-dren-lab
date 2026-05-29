@@ -6,52 +6,46 @@ Purpose
 - Help a coding agent be immediately productive: understand the topology, deployment workflows, key files, and project-specific patterns.
 
 Big picture (what to know first)
-- This repo builds a deployable Hyper‑V lab of 11 VyOS routers (Azure + On‑prem) and a DREN transit. See `README.md` and `docs/System-Design.md` for diagrams and intent.
-- Configs are plain VyOS `set ...` commands under `configs/azure/` and `configs/onprem/`. They are paste‑ready (not templated).
-- Network ordering and NIC semantics are important: `scripts/deploy-hyperv-lab.ps1` attaches NICs deterministically; eth0 is OOB/DHCP, eth1..N follow switch lists. Use those scripts as the source of truth for VM/NIC mapping.
+- This repo builds a deployable Hyper-V home-lab with one central router (`router-center`), three site routers (`router-dc1`/`router-dc2`/`router-dc3`), and four Kubernetes clusters.
+- Router and node configs are under `configs/home-lab/` and are paste-ready VyOS `set ...` and rkeprep node YAML files.
+- NIC ordering and switch naming are driven by `scripts/create-vyos-routers.ps1` and `scripts/create-multicluster-vms.ps1`.
 
 Critical developer workflows (explicit commands)
-- Create switches (Windows/Hyper‑V host, admin PowerShell):
-  - `.
-    scripts\create-hyperv-switches.ps1` (see optional `-UseExternalAdapters` flags in `docs/Runbook.md`).
-- Deploy lab VMs (as Admin PowerShell):
-  - `.
-    scripts\deploy-hyperv-lab.ps1 -RepoRoot (Get-Location)`
-- Tear down:
-  - `.
-    scripts\remove-hyperv-lab.ps1`
-- Apply router configs: connect to a VyOS VM, `configure`, paste the `configs/*.vyos` contents or `load /config/config.boot`, then `commit`/`save`.
-- Validate: follow `docs/Validation-Checklist.md` and `docs/Runbook.md` (interfaces, DREN rules, AZ‑WAN closed tests).
+- Create routers and required home-lab switches:
+  - `.\scripts\create-vyos-routers.ps1 -ExternalSwitchName cotpa-vlans_vsw -ExternalVlanId 9`
+- Create node VMs:
+  - `.\scripts\create-multicluster-vms.ps1 -VhdPath <path-to-node.vhdx>`
+- Apply router configs: connect to a router VM, `configure`, paste commands from `configs/home-lab/routers/*.vyos`, then `commit`/`save`.
+- Apply node manifests from `configs/home-lab/nodes/`.
 
 Project-specific conventions and patterns
-- Firewall posture: default = allow. Two explicit exceptions are enforced in configs:
-  - DREN restriction (only ICMP, TCP/443, UDP/443, UDP/53) — see `configs/azure/edge.vyos` and `configs/onprem/edge.vyos`.
-  - AZ‑WAN closed — see `configs/azure/external.vyos`.
-- Config file style: files in `configs/` are lists of VyOS `set` commands (no templating). When changing behavior, update these files and test by pasting into a running VyOS instance.
-- Shared firewall groups live under `configs/common/firewall-groups.vyos` — prefer referencing shared groups rather than duplicating lists.
-- Image and build automation: `vyos-vm-images/` contains image-related manifests and `roles/` are Ansible roles used for image build pipelines. If modifying build logic, inspect `roles/*/tasks` and `vyos-vm-images/*`.
+- Router naming convention: `router-center`, `router-dc1`, `router-dc2`, `router-dc3`.
+- Only `router-center` has external uplink (`cotpa-vlans_vsw`) and VLAN 9.
+- Site and transit switches are internal.
+- Config file style: home-lab router files are plain VyOS `set ...` commands; node files are rkeprep YAML.
 
 Integration points & external dependencies
-- Hyper‑V host (Windows) and PowerShell (Admin) are required to deploy the lab.
-- VyOS VHDX/ISO images are consumed in `vyos-vm-images/` and by `scripts/deploy-hyperv-lab.ps1`.
-- AppGate SDP and DREN are logical dependencies in the topology — tests assume those services or simulated listeners for port/traffic validation.
+- Hyper-V host (Windows) and elevated PowerShell are required.
+- A VyOS VHDX is required for router VM creation.
+- A Linux node VHDX is required for cluster node VM creation.
 
 Where to look for examples
-- Topology and intent: `docs/System-Design.md`, `docs/Topology.mmd`.
 - Deployment runbook: `docs/Runbook.md`.
-- Router configs (authoritative): `configs/azure/*.vyos`, `configs/onprem/*.vyos`, `configs/common/firewall-groups.vyos`.
-- Automation scripts: `scripts/create-hyperv-switches.ps1`, `scripts/deploy-hyperv-lab.ps1`, `scripts/remove-hyperv-lab.ps1`.
+- Home-lab diagrams: `diagrams/Network-Topology.mmd`, `diagrams/System-Design.mmd`.
+- Router configs: `configs/home-lab/routers/*.vyos`.
+- Node manifests: `configs/home-lab/nodes/*.yaml`.
+- Automation scripts: `scripts/create-vyos-routers.ps1`, `scripts/create-multicluster-vms.ps1`.
 
 How to make safe edits (recommended steps)
-1. Read the relevant `configs/*.vyos` to understand existing rules.
-2. Test small edits on a single VyOS VM by pasting into `configure` and `commit`.
-3. If changing VM/NIC mappings or deployment, update `scripts/deploy-hyperv-lab.ps1` and test deploy on a disposable host.
-4. Update `docs/Validation-Checklist.md` with any new validation steps you introduce.
+1. Read the relevant files under `configs/home-lab/`.
+2. Test small router changes on a single router VM by pasting in `configure` and `commit`.
+3. If changing VM/NIC mapping or deployment behavior, update the two home-lab scripts and run a disposable test deploy.
+4. Keep `README.md` and `docs/Runbook.md` aligned with script behavior.
 
 If uncertain, ask the maintainers for:
-- Which local adapters to bind when using `-UseExternalAdapters`.
-- Any planned topology changes that would affect NIC ordering or IP plan.
+- Which external Hyper-V switch to use for `router-center`.
+- Any planned IP plan changes for node manifests or router static routes.
 
-Done: create/update this file and run through the Runbook validation when making network or firewall changes.
+Done: create/update this file and run through the Runbook checks when making network or VM mapping changes.
 
 If anything here is unclear or you want more/less detail (examples, links to specific config lines), tell me which areas to expand.

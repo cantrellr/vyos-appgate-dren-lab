@@ -8,7 +8,7 @@ flowchart TB
     vsw1s["vSwitch-dc1-storage (netapp-1001)"]
     vdom["vSwitch-dc1-domain (management)"]
     vseg["vSwitch-dc1-seg1 (segment1)"]
-    router1["VyOS: dc1manager-router"]
+    router1["VyOS: router-dc1"]
     vsw1 --> router1
     vsw1s --> router1
     vdom --> router1
@@ -35,7 +35,7 @@ flowchart TB
     v2s["vSwitch-dc2-storage"]
     v2d["vSwitch-dc2-domain"]
     v2g["vSwitch-dc2-seg1"]
-    router2["VyOS: dc2domain-router"]
+    router2["VyOS: router-dc2"]
     v2 --> router2
     v2s --> router2
     v2d --> router2
@@ -59,7 +59,7 @@ flowchart TB
     v3s["vSwitch-dc3-storage"]
     v3d["vSwitch-dc3-domain"]
     v3g["vSwitch-dc3-seg1"]
-    router3["VyOS: dc3domain-router"]
+    router3["VyOS: router-dc3"]
     v3 --> router3
     v3s --> router3
     v3d --> router3

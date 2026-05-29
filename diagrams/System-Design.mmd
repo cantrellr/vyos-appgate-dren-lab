@@ -30,9 +30,9 @@ flowchart LR
 
   Internet[[Internet]]
   CentralRouter["Central Transit Router\n(Transit + Internet Uplink)"]
-  EdgeRouter1["dc1manager-router\n(Site Router)"]
-  EdgeRouter2["dc2domain-router\n(Site Router)"]
-  EdgeRouter3["dc3domain-router\n(Site Router)"]
+  EdgeRouter1["router-dc1\n(Site Router)"]
+  EdgeRouter2["router-dc2\n(Site Router)"]
+  EdgeRouter3["router-dc3\n(Site Router)"]
   ExtSwitch["cotpa-vlans_vsw\n(External Switch VLAN 9)"]
 
   EdgeRouter1 -->|transit| CentralRouter

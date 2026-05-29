@@ -4,7 +4,7 @@ Create Hyper-V VMs for the multicluster lab.
 Usage:
   .\create-multicluster-vms.ps1 -VhdPath C:\images\ubuntu-server.vhdx -SwitchPrefix 'vSwitch-'
 
-This script expects the vSwitches to already exist (use configs/nodes/network/vswitches/create-multicluster-switches.ps1).
+This script expects the home-lab vSwitches to already exist (use scripts/create-vyos-routers.ps1).
 The user will supply the path to the base VHDX image to attach to each VM. It will not modify the VHDX.
 #>
 
@@ -31,12 +31,16 @@ function siteSwitches($site) {
 $nodes = @(
     @{ Name='dc1manager-ctrl01'; Switches = siteSwitches('dc1') },
     @{ Name='dc1manager-work01'; Switches = siteSwitches('dc1') },
+    @{ Name='dc1manager-work02'; Switches = siteSwitches('dc1') },
     @{ Name='dc1domain-ctrl01';  Switches = siteSwitches('dc1') },
     @{ Name='dc1domain-work01';  Switches = siteSwitches('dc1') },
+    @{ Name='dc1domain-work02';  Switches = siteSwitches('dc1') },
     @{ Name='dc2domain-ctrl01';  Switches = siteSwitches('dc2') },
     @{ Name='dc2domain-work01';  Switches = siteSwitches('dc2') },
+    @{ Name='dc2domain-work02';  Switches = siteSwitches('dc2') },
     @{ Name='dc3domain-ctrl01';  Switches = siteSwitches('dc3') },
-    @{ Name='dc3domain-work01';  Switches = siteSwitches('dc3') }
+    @{ Name='dc3domain-work01';  Switches = siteSwitches('dc3') },
+    @{ Name='dc3domain-work02';  Switches = siteSwitches('dc3') }
 )
 
 foreach ($node in $nodes) {
@@ -44,8 +48,14 @@ foreach ($node in $nodes) {
     if (Get-VM -Name $vmName -ErrorAction SilentlyContinue) { Write-Host "VM $vmName already exists, skipping"; continue }
 
     Write-Host "Creating VM: $vmName"
-    New-VM -Name $vmName -MemoryStartupBytes 4GB -Generation 2 -BootDevice VHD -Path "$vmRoot\$vmName" | Out-Null
+    New-VM -Name $vmName -MemoryStartupBytes 4GB -Generation 2 -NoVHD -Path "$vmRoot\$vmName" | Out-Null
     Set-VM -Name $vmName -ProcessorCount 1
+
+    # Remove the default unmanaged adapter so eth0..eth3 are deterministic.
+    $defaultAdapter = Get-VMNetworkAdapter -VMName $vmName -Name 'Network Adapter' -ErrorAction SilentlyContinue
+    if ($null -ne $defaultAdapter) {
+        Remove-VMNetworkAdapter -VMName $vmName -Name 'Network Adapter' -Confirm:$false
+    }
 
     # Attach network adapters - explicit mapping to per-network vSwitches:
     # eth0 -> kubes-domain
@@ -66,6 +76,12 @@ foreach ($node in $nodes) {
     $destVhd = "$vmRoot\$vmName\$vmName.vhdx"
     Copy-Item -Path $VhdPath -Destination $destVhd -Force
     Add-VMHardDiskDrive -VMName $vmName -Path $destVhd
+
+    # Ensure disk-first boot for Gen2 VMs.
+    $bootDisk = Get-VMHardDiskDrive -VMName $vmName | Select-Object -First 1
+    if ($null -ne $bootDisk) {
+        Set-VMFirmware -VMName $vmName -FirstBootDevice $bootDisk
+    }
 
     Write-Host "Created VM $vmName with 1 CPU, 4GB RAM, and VHD at $destVhd"
 }

@@ -1,3 +1,8 @@
 *.log
 *.bak
 .DS_Store
+
+# Hyper-V generated VM disks and runtime outputs
+configs/nodes/vms/
+configs/nodes/vyos/
+artifacts/vyos-config-iso/

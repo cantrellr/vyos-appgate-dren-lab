@@ -1,0 +1,44 @@
+# router-dc1.vyos - site router for dc1manager and dc1domain clusters
+
+# This router connects the dc1 site networks to the central transit.  Each
+# interface corresponds to one of the four internal networks used by the
+# clusters: kubes-domain (Kubernetes node/management), storage (iSCSI),
+# domain (general management traffic), and segment1 (alternate network for
+# ingress).  The fifth interface connects to the transit network toward
+# the central NAT router.
+
+set system host-name 'router-dc1'
+
+# kubes-domain network - default gateway for all dc1manager and dc1domain nodes
+set interfaces ethernet eth0 description 'dc1 kubes-domain'
+set interfaces ethernet eth0 address '10.1.4.1/24'
+
+# storage network – optional iSCSI/NFS segment for persistent volumes
+set interfaces ethernet eth1 description 'dc1 storage'
+set interfaces ethernet eth1 address '172.16.10.1/24'
+
+# domain management network – used for SSH, API traffic, and other lab
+# services.  Nodes define this as eth2.
+set interfaces ethernet eth2 description 'dc1 domain management'
+set interfaces ethernet eth2 address '192.168.1.1/24'
+
+# segment1 network – optional alternative ingress path.  This router acts
+# as the default gateway for 1.1.0.0/24.
+set interfaces ethernet eth3 description 'dc1 segment1'
+set interfaces ethernet eth3 address '1.1.0.1/24'
+
+# transit link to the central router
+set interfaces ethernet eth4 description 'transit'
+set interfaces ethernet eth4 address '10.254.0.2/24'
+
+# Default route – send all non‑local traffic to the central router
+set protocols static route 0.0.0.0/0 next-hop '10.254.0.1'
+
+# Keep firewall permissive for lab purposes
+set firewall ipv4 input filter default-action 'accept'
+set firewall ipv4 forward filter default-action 'accept'
+set firewall ipv4 output filter default-action 'accept'
+
+set service ssh port '22'
+set service ssh dynamic-protection
+set service ssh dynamic-protection allow-from '10.255.255.0/24'

@@ -9,15 +9,16 @@ Topology summary:
     carries VLAN 9.
 
 Usage:
-  .\create-vyos-routers.ps1 -VhdPath C:\images\vyos.vhdx -ExternalSwitchName 'cotpa-vlans_vsw' -ExternalVlanId 9
+    .\create-vyos-routers.ps1 -ExternalSwitchName 'cotpa-vlans_vsw' -ExternalVlanId 9
 
 This creates one central router plus one site router per site.
-Each router is created with 1 CPU and 4GB RAM by default.
+Each router is created with 1 CPU and 256MB RAM by default.
 #>
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$VhdPath,
+        [string]$VhdPath = 'D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx',
+
+        [string]$VirtualDiskRoot = 'D:\Production_Data\HyperV\Virtual Hard Disks\K8S',
 
     [string]$SwitchPrefix = 'vSwitch-',
 
@@ -32,6 +33,8 @@ if (-not (Test-Path $VhdPath)) {
     Write-Error "VHD path $VhdPath not found"
     exit 1
 }
+
+New-Item -Path $VirtualDiskRoot -ItemType Directory -Force | Out-Null
 
 $vmRoot = Join-Path $PSScriptRoot '..\configs\nodes\vyos'
 New-Item -Path $vmRoot -ItemType Directory -Force | Out-Null
@@ -76,8 +79,14 @@ function Ensure-VMFromVhd {
     New-Item -Path $vmPath -ItemType Directory -Force | Out-Null
 
     Write-Host "Creating VyOS VM: $Name"
-    New-VM -Name $Name -MemoryStartupBytes 4GB -Generation 2 -BootDevice VHD -Path $vmPath | Out-Null
+    New-VM -Name $Name -MemoryStartupBytes 256MB -Generation 2 -NoVHD -Path $vmPath | Out-Null
     Set-VM -Name $Name -ProcessorCount 1 | Out-Null
+
+    # Remove the default unmanaged adapter so eth0..ethN are deterministic.
+    $defaultAdapter = Get-VMNetworkAdapter -VMName $Name -Name 'Network Adapter' -ErrorAction SilentlyContinue
+    if ($null -ne $defaultAdapter) {
+        Remove-VMNetworkAdapter -VMName $Name -Name 'Network Adapter' -Confirm:$false
+    }
 
     $index = 0
     foreach ($switchName in $Switches) {
@@ -91,11 +100,20 @@ function Ensure-VMFromVhd {
         Write-Host "[NEW] Applied VLAN $ExternalVlanId to eth0 on $Name"
     }
 
-    $destVhd = Join-Path $vmPath "$Name.vhdx"
+    $diskPath = Join-Path $VirtualDiskRoot $Name
+    New-Item -Path $diskPath -ItemType Directory -Force | Out-Null
+
+    $destVhd = Join-Path $diskPath "$Name.vhdx"
     Copy-Item -Path $VhdPath -Destination $destVhd -Force
     Add-VMHardDiskDrive -VMName $Name -Path $destVhd | Out-Null
 
-    Write-Host "Created VM $Name with 1 CPU, 4GB RAM, and VHD at $destVhd"
+    # Ensure disk-first boot for Gen2 VMs.
+    $bootDisk = Get-VMHardDiskDrive -VMName $Name | Select-Object -First 1
+    if ($null -ne $bootDisk) {
+        Set-VMFirmware -VMName $Name -FirstBootDevice $bootDisk | Out-Null
+    }
+
+    Write-Host "Created VM $Name with 1 CPU, 256MB RAM, and VHD at $destVhd"
 }
 
 $sites = @('dc1', 'dc2', 'dc3')
@@ -108,10 +126,10 @@ foreach ($site in $sites) {
 Ensure-InternalSwitch -Name "${SwitchPrefix}transit"
 
 $routers = @(
-    @{ Name = 'central-router'; Switches = @($ExternalSwitchName, "${SwitchPrefix}transit"); External = $true },
-    @{ Name = 'dc1manager-router'; Switches = @(Get-SiteSwitches -Site 'dc1'); External = $false },
-    @{ Name = 'dc2domain-router'; Switches = @(Get-SiteSwitches -Site 'dc2'); External = $false },
-    @{ Name = 'dc3domain-router'; Switches = @(Get-SiteSwitches -Site 'dc3'); External = $false }
+    @{ Name = 'router-center'; Switches = @($ExternalSwitchName, "${SwitchPrefix}transit"); External = $true },
+    @{ Name = 'router-dc1'; Switches = @(Get-SiteSwitches -Site 'dc1'); External = $false },
+    @{ Name = 'router-dc2'; Switches = @(Get-SiteSwitches -Site 'dc2'); External = $false },
+    @{ Name = 'router-dc3'; Switches = @(Get-SiteSwitches -Site 'dc3'); External = $false }
 )
 
 if (-not (Get-VMSwitch -Name $ExternalSwitchName -ErrorAction SilentlyContinue)) {
