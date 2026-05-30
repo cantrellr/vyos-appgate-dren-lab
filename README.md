@@ -68,6 +68,9 @@ How it all works:
 - `router-center` is the only router with external uplink (`cotpa-vlans_vsw`, VLAN 9).
 - Site and transit switches are internal.
 - Router default sizing is 1 vCPU and 256 MB RAM.
+- `scripts/create-vyos-routers.ps1` creates a per-router NoCloud seed ISO from `configs/home-lab/routers/*.vyos`, attaches it as a DVD drive, boots from hard drive, and disables automatic checkpoints.
+- The seed ISO contains `user-data`, empty `meta-data`, and a minimal `network-config` so VyOS cloud-init can apply router config on first boot.
+- Router VMs disable secure boot so VyOS can boot; node VMs keep secure boot enabled with the Microsoft UEFI Certificate Authority template (`MicrosoftUEFICertificateAuthority`).
 - Router VHDX clones default to `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<router-name>\<router-name>.vhdx`.
 - Node VHDX clones default to `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<node-name>\<node-name>.vhdx`.
 - Node default sizing is 1 vCPU and 4 GB RAM.

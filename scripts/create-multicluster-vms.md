@@ -15,6 +15,8 @@ Behavior summary
   - 1 vCPU
   - 4 GB startup memory
   - 4 NICs (`eth0..eth3`)
+- Secure boot:
+  - Enabled with the Microsoft UEFI Certificate Authority template (`MicrosoftUEFICertificateAuthority`).
 - NIC mapping per node:
   - `eth0 -> vSwitch-<site>-kubes`
   - `eth1 -> vSwitch-<site>-storage`

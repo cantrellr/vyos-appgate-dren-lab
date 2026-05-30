@@ -17,6 +17,8 @@ param(
 
 if (-not (Test-Path $VhdPath)) { Write-Error "VHD path $VhdPath not found"; exit 1 }
 
+$SecureBootTemplate = 'MicrosoftUEFICertificateAuthority'
+
 $vmRoot = "$PSScriptRoot\..\configs\home-lab\vms\nodes"
 New-Item -Path $vmRoot -ItemType Directory -Force | Out-Null
 New-Item -Path $VirtualDiskRoot -ItemType Directory -Force | Out-Null
@@ -85,7 +87,7 @@ foreach ($node in $nodes) {
     # Ensure disk-first boot for Gen2 VMs.
     $bootDisk = Get-VMHardDiskDrive -VMName $vmName | Select-Object -First 1
     if ($null -ne $bootDisk) {
-        Set-VMFirmware -VMName $vmName -FirstBootDevice $bootDisk
+        Set-VMFirmware -VMName $vmName -EnableSecureBoot On -SecureBootTemplate $SecureBootTemplate -FirstBootDevice $bootDisk
     }
 
     Write-Host "Created VM $vmName with 1 CPU, 4GB RAM, and VHD at $destVhd"

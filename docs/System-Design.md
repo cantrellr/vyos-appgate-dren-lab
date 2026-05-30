@@ -63,7 +63,7 @@ flowchart LR
 | Compute | `dc1manager`, `dc1domain`, `dc2domain`, `dc3domain` | Kubernetes control and workload execution |
 | Service platform | Istio control plane/east-west gateways, observability stack, NetApp storage | Service-to-service networking, telemetry, and persistent data |
 | Automation | `scripts/create-vyos-routers.ps1`, `scripts/create-multicluster-vms.ps1` | Repeatable provisioning and deterministic topology assembly |
-| Configuration data | `configs/home-lab/routers/*.vyos`, `configs/home-lab/nodes/*.yaml` | Router policy and node interface/runtime definitions |
+| Configuration data | `configs/home-lab/routers/*.vyos`, `configs/home-lab/nodes/*.yaml` | Router intent source and node interface/runtime definitions |
 
 ## Site and cluster model
 
@@ -172,17 +172,20 @@ Each site uses four primary segments:
 
 ## Provisioning flow
 
+The router provisioning script converts each router config fragment into a per-router NoCloud seed ISO containing `user-data`, empty `meta-data`, and a minimal `network-config`, labels it `CIDATA`, and attaches that ISO to the matching VM as DVD media. VyOS cloud-init consumes the seed on first boot. Router VMs disable secure boot so VyOS can boot, node provisioning still uses the Microsoft UEFI Certificate Authority secure-boot template, and both VM types boot from hard drive first. Automatic checkpoints are disabled for the routers so the seed ISO is used as attached configuration media rather than as a boot source.
+
 ```mermaid
 flowchart TD
   A[Run create-vyos-routers.ps1] --> B[Ensure site switches and transit switch]
   B --> C[Create router-center and router-dc1/dc2/dc3 VMs]
   C --> D[Attach router VHDX files under K8S disk root]
-  D --> E[Run create-multicluster-vms.ps1]
-  E --> F[Create 12 node VMs with 4 NICs each]
-  F --> G[Attach node VHDX files under K8S disk root]
-  G --> H[Apply configs from configs/home-lab/routers]
-  H --> I[Apply node manifests from configs/home-lab/nodes]
-  I --> J[Validate VMs, switches, and routing]
+  D --> E[Generate NoCloud seed ISO from configs/home-lab/routers]
+  E --> F[Attach seed ISO as DVD media]
+  F --> G[Run create-multicluster-vms.ps1]
+  G --> H[Create 12 node VMs with 4 NICs each]
+  H --> I[Attach node VHDX files under K8S disk root]
+  I --> J[Apply node manifests from configs/home-lab/nodes]
+  J --> K[Validate VMs, switches, and routing]
 ```
 
 ## Router script logic
@@ -195,7 +198,8 @@ flowchart TD
   R3 --> R4[Remove default NIC and add deterministic eth adapters]
   R4 --> R5[Apply VLAN 9 on router-center eth0 only]
   R5 --> R6[Clone template VHDX to K8S disk root]
-  R6 --> R7[Attach disk and set disk-first boot]
+  R6 --> R7[Build NoCloud seed ISO from router config]
+  R7 --> R8[Attach disk, attach seed ISO, and set disk-first boot]
 ```
 
 ## Operations examples
