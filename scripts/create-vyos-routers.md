@@ -16,25 +16,27 @@ Behavior summary
   - `router-dc1`
   - `router-dc2`
   - `router-dc3`
-- VM sizing: Generation 2, 1 vCPU, 256 MB startup memory.
+- VM sizing: Generation 2, 1 vCPU, 1 GB startup memory.
 - Boot policy: hard drive first, automatic checkpoints disabled.
 - Secure boot: disabled for VyOS so the router image can boot correctly.
 - Uplink policy:
   - Only `router-center` attaches to the external switch.
-  - `router-center` `eth0` is set to VLAN 9 access mode.
+  - `router-center` `eth0` is attached to VLAN 9 at the Hyper-V adapter layer.
+  - VyOS inside the guest keeps `eth0` on plain DHCP; the host-side adapter already carries the VLAN tag.
 - Config media:
   - Creates a per-router NoCloud seed ISO from `configs/home-lab/routers/<router-name>.vyos`.
-  - The seed ISO contains `user-data`, empty `meta-data`, and a minimal `network-config`.
-  - The ISO is labeled `CIDATA` and attached as a DVD drive to the corresponding VM.
+  - The seed ISO contains `user-data`, `meta-data` with a unique `instance-id`/`local-hostname`, and a minimal `network-config`.
+  - The ISO is labeled `cidata` and attached as a DVD drive to the corresponding VM.
 
 Parameters
 
-- `-VhdPath` (optional): Source VyOS VHDX to clone per VM. Default: `D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.4.4-hyperv-amd64.vhdx`.
-- The default image is the last known bootable Hyper-V template on this host. If you have a cloud-init-capable VyOS 1.5.x Hyper-V VHDX, pass it explicitly with `-VhdPath`.
+- `-VhdPath` (optional): Source VyOS VHDX to clone per VM. Default: `D:\Production_Data\HyperV\Hard Disk Templates\vyos-1.5.0-hyperv-amd64.vhdx`.
+- The default image is the cloud-init-capable VyOS 1.5.0 Hyper-V template on this host.
+- The 1.5.0 image needs 1 GB startup RAM on this host; 256 MB caused `initramfs unpacking failed` and a kernel panic during boot.
 - `-VirtualDiskRoot` (optional): Parent folder for per-router cloned VHDX files. Default: `D:\Production_Data\HyperV\Virtual Hard Disks\K8S`.
 - `-SwitchPrefix` (optional, default `vSwitch-`): Prefix used for internal switches.
 - `-ExternalSwitchName` (optional, default `cotpa-vlans_vsw`): Existing external Hyper-V switch used by central router.
-- `-ExternalVlanId` (optional, default `9`): VLAN ID applied to `router-center` `eth0`.
+- `-ExternalVlanId` (optional, default `9`): VLAN ID applied to the `router-center` Hyper-V uplink adapter.
 
 Usage
 
@@ -65,7 +67,7 @@ How it works with the full design:
 
 1. Creates/ensures site and transit switches.
 2. Creates center/site router VMs and deterministic NIC mapping.
-3. Builds a per-router NoCloud seed ISO (`user-data`, `meta-data`, `network-config`) from the matching VyOS config fragment and attaches it as DVD media.
-4. Applies external uplink behavior to `router-center` (`eth0`, VLAN 9).
+3. Builds a per-router NoCloud seed ISO (`user-data`, empty `meta-data`, `network-config`) from the matching VyOS config fragment and attaches it as DVD media.
+4. Applies external uplink behavior to `router-center` (`eth0` on the Hyper-V side, VLAN 9).
 5. Forces hard-drive boot order and disables automatic checkpoints so the seed ISO is data/config media only.
 6. Provides the network foundation that node VM and manifest layers consume.

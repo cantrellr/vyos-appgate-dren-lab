@@ -10,12 +10,11 @@
 set system host-name 'router-center'
 
 # External uplink – connect eth0 to the cotpa_vlans_vsw Hyper‑V switch and tag
-# VLAN 9.  In most home‑lab setups this interface will obtain its address via
-# DHCP from your upstream network.  Uncomment the static address line if your
-# environment requires a fixed IP.
+# VLAN 9 at the Hyper-V adapter layer. VyOS should treat eth0 as a plain DHCP
+# client here; the host-side virtual switch already supplies the VLAN tag.
+# Uncomment the static address line if your environment requires a fixed IP.
 set interfaces ethernet eth0 description 'external uplink (cotpa_vlans_vsw vlan9)'
-set interfaces ethernet eth0 vlan '9'
-set interfaces ethernet eth0 dhcp
+set interfaces ethernet eth0 address 'dhcp'
 # set interfaces ethernet eth0 address 'X.X.X.X/24'
 
 # Transit network – this internal /24 network connects the central router to

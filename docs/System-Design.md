@@ -196,7 +196,7 @@ flowchart TD
   R1 --> R2[Create or verify internal site and transit switches]
   R2 --> R3[For each router VM: create VM shell]
   R3 --> R4[Remove default NIC and add deterministic eth adapters]
-  R4 --> R5[Apply VLAN 9 on router-center eth0 only]
+  R4 --> R5[Apply VLAN 9 on the Hyper-V eth0 adapter for router-center]
   R5 --> R6[Clone template VHDX to K8S disk root]
   R6 --> R7[Build NoCloud seed ISO from router config]
   R7 --> R8[Attach disk, attach seed ISO, and set disk-first boot]
@@ -210,7 +210,7 @@ flowchart TD
 Get-VMNetworkAdapterVlan -VMName router-center -VMNetworkAdapterName eth0
 ```
 
-Expected: Access mode on VLAN 9.
+Expected: Access mode on VLAN 9 at the Hyper-V layer; VyOS inside the guest should still use plain DHCP on `eth0`.
 
 ### Example: verify all routers and core clusters are running
 

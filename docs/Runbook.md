@@ -36,7 +36,7 @@ Expected result:
 - Router disks cloned to: `D:\Production_Data\HyperV\Virtual Hard Disks\K8S\<router-name>\<router-name>.vhdx`
 - Site switches created as internal (`vSwitch-dcX-kubes`, `-storage`, `-domain`, `-seg1`)
 - Transit switch created as internal (`vSwitch-transit`)
-- Only `router-center` has external uplink and VLAN 9 on `eth0`
+- Only `router-center` has the external uplink; VLAN 9 is applied on the Hyper-V adapter, while VyOS keeps `eth0` on DHCP
 - Router firmware still boots from hard drive first and automatic checkpoints are disabled.
 - Router secure boot is disabled so VyOS can boot; node VMs still use the Microsoft UEFI Certificate Authority template.
 
@@ -57,7 +57,7 @@ Expected result:
 ## 3) Apply configs/manifests
 
 - Router config fragments: `configs/home-lab/routers/`
-- The router configs are converted into NoCloud `user-data` and `meta-data` on the fly, packed into a `CIDATA` seed ISO, and attached as DVD media. VyOS cloud-init applies the matching config automatically on first boot.
+- The router configs are converted into NoCloud `user-data` and `meta-data` with a unique `instance-id`/`local-hostname` on the fly, packed into a `cidata` seed ISO, and attached as DVD media. VyOS cloud-init applies the matching config automatically on first boot.
 - Node manifests: `configs/home-lab/nodes/`
 
 ## 4) Quick verification
