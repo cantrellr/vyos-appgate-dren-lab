@@ -1,3 +1,220 @@
+That error is **a weak diagnostic in the current repository**, not necessarily proof that the Fleet bundle definitions are wrong.
+
+In the latest ZIP, `scripts/management/fleet/04-validate-fleet.sh`:
+
+1. Checks the GitRepo conditions.
+2. Immediately queries for Bundles.
+3. Fails if none exist.
+
+It does **not wait for GitJob to fetch and scan the repository**, and it does not properly surface `GitPolling=False`, `Stalled=True`, or an empty commit. After repairing credentials, Fleet may need another poll or a forced sync before bundles appear. Fleet creates Bundles only after it successfully fetches the configured branch and scans the specified paths. ([Fleet][1])
+
+## Force Fleet to re-fetch now
+
+First rerun the Fleet phase so the corrected credential files are copied into the Kubernetes Secrets:
+
+```bash
+./scripts/deploy-platform.sh fleet
+```
+
+Then force both GitRepos to synchronize:
+
+```bash
+for ref in \
+  fleet-local/k8mm-seg1opdev-multicluster-local \
+  fleet-default/k8mm-seg1opdev-multicluster-downstream
+do
+  namespace="${ref%%/*}"
+  name="${ref##*/}"
+
+  current="$(
+    kubectl --context j64seg1opman \
+      -n "$namespace" \
+      get gitrepo "$name" \
+      -o jsonpath='{.spec.forceSyncGeneration}'
+  )"
+
+  current="${current:-0}"
+
+  kubectl --context j64seg1opman \
+    -n "$namespace" \
+    patch gitrepo "$name" \
+    --type=merge \
+    -p "{\"spec\":{\"forceSyncGeneration\":$((current + 1))}}"
+done
+```
+
+Incrementing `forceSyncGeneration` is Fleet’s supported mechanism for forcing another repository synchronization. ([Fleet][1])
+
+Watch the GitRepos:
+
+```bash
+kubectl --context j64seg1opman \
+  get gitrepos.fleet.cattle.io -A -w
+```
+
+Give Fleet about one or two minutes, then check:
+
+```bash
+kubectl --context j64seg1opman \
+  get bundles.fleet.cattle.io -A \
+  -L fleet.cattle.io/repo-name
+```
+
+You should see multiple Bundles associated with:
+
+```text
+k8mm-seg1opdev-multicluster-local
+k8mm-seg1opdev-multicluster-downstream
+```
+
+## Check the real GitRepo condition
+
+Run this before trying `validate` again:
+
+```bash
+for ref in \
+  fleet-local/k8mm-seg1opdev-multicluster-local \
+  fleet-default/k8mm-seg1opdev-multicluster-downstream
+do
+  namespace="${ref%%/*}"
+  name="${ref##*/}"
+
+  echo
+  echo "===== ${namespace}/${name} ====="
+
+  kubectl --context j64seg1opman \
+    -n "$namespace" \
+    get gitrepo "$name" \
+    -o json |
+  jq '{
+    generation: .metadata.generation,
+    observedGeneration: .status.observedGeneration,
+    commit: .status.commit,
+    display: .status.display,
+    conditions: .status.conditions
+  }'
+done
+```
+
+Look for:
+
+```text
+Accepted=True
+GitPolling=True
+Stalled=False
+```
+
+The `commit` field should also contain the Git commit Fleet fetched. Fleet uses `GitPolling`, `Reconciling`, `Stalled`, `Accepted`, and `Ready` to report the different stages and failures of GitRepo processing. ([Fleet][2])
+
+## Verify the files are actually in GitLab
+
+This is the part people get burned by: **Fleet cannot see the extracted ZIP or your local files. It sees only what has been committed and pushed to the branch configured by `FLEET_REPO_BRANCH`.**
+
+From your local repository:
+
+```bash
+git fetch origin
+
+git status
+
+git branch --show-current
+
+git log -1 --oneline HEAD
+git log -1 --oneline origin/main
+```
+
+Confirm the Fleet bundle files exist in the remote branch:
+
+```bash
+git ls-tree -r --name-only origin/main |
+grep -E '^fleet/bundles/.+/fleet\.yaml$' |
+sort
+```
+
+You should get approximately 20 `fleet.yaml` files.
+
+Also verify the specific paths configured by the GitRepos:
+
+```bash
+for path in \
+  fleet/bundles/00-namespaces \
+  fleet/bundles/10-cert-manager \
+  fleet/bundles/20-metallb \
+  fleet/bundles/31-contour-segment1 \
+  fleet/bundles/50-cnpg-operator \
+  fleet/bundles/52-keycloak-operator \
+  fleet/bundles/53-keycloak \
+  fleet/bundles/71-elastic-agent
+do
+  git cat-file -e "origin/main:${path}" 2>/dev/null \
+    && echo "PASS ${path}" \
+    || echo "FAIL ${path}"
+done
+```
+
+If those show `FAIL`, commit and push the updated repository:
+
+```bash
+git add .
+git commit -m "Apply Rancher, Fleet, CIS, and Kubernetes 1.35 fixes"
+git push origin main
+```
+
+Then increment `forceSyncGeneration` again.
+
+## Check GitJob directly
+
+If the GitRepo has no commit or shows `Stalled=True`, inspect GitJob:
+
+```bash
+kubectl --context j64seg1opman \
+  -n cattle-fleet-system \
+  logs deployment/gitjob \
+  --all-containers=true \
+  --since=20m |
+grep -Ei \
+  'k8mm-seg1opdev|error|failed|authentication|denied|path|clone|checkout|bundle'
+```
+
+Also inspect the Fleet controller:
+
+```bash
+kubectl --context j64seg1opman \
+  -n cattle-fleet-system \
+  logs deployment/fleet-controller \
+  --all-containers=true \
+  --since=20m |
+grep -Ei \
+  'k8mm-seg1opdev|error|failed|bundle|gitrepo'
+```
+
+## Expected recovery
+
+Once this returns Bundles:
+
+```bash
+kubectl --context j64seg1opman \
+  get bundles.fleet.cattle.io -A \
+  -l fleet.cattle.io/repo-name
+```
+
+rerun:
+
+```bash
+./scripts/deploy-platform.sh validate
+```
+
+The repository needs a code correction as well: `04-validate-fleet.sh` should wait for GitRepo polling and bundle generation instead of immediately throwing the misleading “No Fleet Bundles” message. The most likely immediate cause, though, is either **Fleet has not rescanned after the credential change** or **the patched `fleet/bundles` tree has not been pushed to the configured GitLab branch**.
+
+[1]: https://fleet.rancher.io/reference/ref-gitrepo "GitRepo Resource :: Fleet"
+[2]: https://fleet.rancher.io/reference/ref-status-fields "Status Fields :: Fleet"
+
+
+
+
+
+
+
 The screenshot confirms Fleet can reach GitLab, but **GitLab is rejecting the credentials stored in the Fleet Kubernetes Secret**. DNS, TLS, and repository URL routing are already working.
 
 There is an important naming detail in the repository:
