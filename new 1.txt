@@ -1,0 +1,293 @@
+The screenshot confirms Fleet can reach GitLab, but **GitLab is rejecting the credentials stored in the Fleet Kubernetes Secret**. DNS, TLS, and repository URL routing are already working.
+
+There is an important naming detail in the repository:
+
+```bash
+FLEET_GIT_USERNAME_FILE=.../fleet-git-username
+FLEET_GIT_PASSWORD_FILE=.../fleet-git-token
+```
+
+The token file may be named `fleet-git-token`, but the environment variable is **`FLEET_GIT_PASSWORD_FILE`**, not `FLEET_GIT_TOKEN_FILE`. The deployment also reads:
+
+```text
+~/.config/k8mm-seg1opdev-multicluster/fleet-bootstrap.env
+```
+
+It does not automatically read a repository-root `.env` file.
+
+## 1. Verify the runtime configuration
+
+```bash
+CONFIG="$HOME/.config/k8mm-seg1opdev-multicluster/fleet-bootstrap.env"
+
+grep -nE '^(FLEET_REPO_URL|FLEET_REPO_BRANCH|FLEET_GIT_)=' "$CONFIG"
+```
+
+You should have:
+
+```bash
+FLEET_REPO_URL=https://gitlab001.dev.local/kubeclusters/k8mm-seg1opdev-multicluster.git
+FLEET_REPO_BRANCH=main
+FLEET_GIT_USERNAME_FILE=/home/k8admin/.config/k8mm-seg1opdev-multicluster/secrets/fleet-git-username
+FLEET_GIT_PASSWORD_FILE=/home/k8admin/.config/k8mm-seg1opdev-multicluster/secrets/fleet-git-token
+```
+
+Set appropriate permissions:
+
+```bash
+chmod 600 "$CONFIG"
+chmod 600 \
+  "$HOME/.config/k8mm-seg1opdev-multicluster/secrets/fleet-git-username" \
+  "$HOME/.config/k8mm-seg1opdev-multicluster/secrets/fleet-git-token"
+```
+
+Remove any Windows carriage returns. A hidden `\r` at the end of either credential will cause exactly this kind of authentication failure:
+
+```bash
+sed -i 's/\r$//' \
+  "$HOME/.config/k8mm-seg1opdev-multicluster/secrets/fleet-git-username" \
+  "$HOME/.config/k8mm-seg1opdev-multicluster/secrets/fleet-git-token"
+```
+
+## 2. Test the credentials directly against GitLab
+
+This test does not place the token in the command line or Git URL:
+
+```bash
+set -a
+source "$CONFIG"
+set +a
+
+ASKPASS_DIR="$(mktemp -d)"
+
+cat >"${ASKPASS_DIR}/git-askpass.sh" <<'EOF'
+#!/bin/sh
+case "$1" in
+  *Username*) printf '%s\n' "${FLEET_TEST_USERNAME}" ;;
+  *Password*) printf '%s\n' "${FLEET_TEST_PASSWORD}" ;;
+  *) exit 1 ;;
+esac
+EOF
+
+chmod 700 "${ASKPASS_DIR}/git-askpass.sh"
+
+export FLEET_TEST_USERNAME
+export FLEET_TEST_PASSWORD
+
+FLEET_TEST_USERNAME="$(tr -d '\r\n' <"${FLEET_GIT_USERNAME_FILE}")"
+FLEET_TEST_PASSWORD="$(tr -d '\r\n' <"${FLEET_GIT_PASSWORD_FILE}")"
+
+GIT_ASKPASS="${ASKPASS_DIR}/git-askpass.sh" \
+GIT_TERMINAL_PROMPT=0 \
+git ls-remote \
+  --exit-code \
+  "${FLEET_REPO_URL}" \
+  "refs/heads/${FLEET_REPO_BRANCH}"
+
+result=$?
+
+unset FLEET_TEST_USERNAME FLEET_TEST_PASSWORD
+rm -rf "${ASKPASS_DIR}"
+
+exit "$result"
+```
+
+A successful result returns the Git commit hash and branch:
+
+```text
+<commit-hash>    refs/heads/main
+```
+
+If this test returns `HTTP Basic: Access denied`, the Kubernetes configuration is not the problem—the GitLab credential itself is invalid.
+
+The token needs at least `read_repository` access. For a GitLab deploy token, `fleet-git-username` must contain the generated deploy-token username, commonly something like `gitlab+deploy-token-123`, not your normal GitLab username. Personal, project, and group access tokens can authenticate Git-over-HTTPS using the token as the password and require repository-read permission. ([GitLab Docs][1])
+
+## 3. Recreate the Fleet secrets
+
+Having the files on disk is not enough. The files are only bootstrap inputs; Fleet reads the Kubernetes Secret named `kmm-git-credentials`.
+
+From the extracted repository:
+
+```bash
+KMM_FLEET_CONFIG="$CONFIG" \
+  ./scripts/management/fleet/03-bootstrap-gitrepos.sh
+```
+
+That recreates the credential Secret in both:
+
+```text
+fleet-local/kmm-git-credentials
+fleet-default/kmm-git-credentials
+```
+
+Verify the Secret structure without printing credentials:
+
+```bash
+for ns in fleet-local fleet-default; do
+  echo "===== ${ns} ====="
+
+  kubectl --context j64seg1opman \
+    -n "$ns" \
+    get secret kmm-git-credentials \
+    -o jsonpath='type={.type} keys={.data}{"\n"}' |
+  sed -E 's/"[^"]+":"[^"]+"/"<redacted>":"<redacted>"/g'
+done
+```
+
+The Secret type should be:
+
+```text
+kubernetes.io/basic-auth
+```
+
+And it must contain the keys:
+
+```text
+username
+password
+```
+
+## 4. Verify the Secret contains the current files
+
+Compare hashes without disclosing either value:
+
+```bash
+set -a
+source "$CONFIG"
+set +a
+
+echo "Local username:"
+tr -d '\r\n' <"$FLEET_GIT_USERNAME_FILE" | sha256sum
+
+echo "Fleet username:"
+kubectl --context j64seg1opman \
+  -n fleet-default \
+  get secret kmm-git-credentials \
+  -o jsonpath='{.data.username}' |
+base64 -d |
+sha256sum
+
+echo "Local token:"
+tr -d '\r\n' <"$FLEET_GIT_PASSWORD_FILE" | sha256sum
+
+echo "Fleet token:"
+kubectl --context j64seg1opman \
+  -n fleet-default \
+  get secret kmm-git-credentials \
+  -o jsonpath='{.data.password}' |
+base64 -d |
+sha256sum
+```
+
+Each local/cluster hash pair must match.
+
+## 5. Force Fleet to retry immediately
+
+```bash
+for item in \
+  "fleet-local/k8mm-seg1opdev-multicluster-local" \
+  "fleet-default/k8mm-seg1opdev-multicluster-downstream"; do
+
+  namespace="${item%%/*}"
+  name="${item##*/}"
+
+  generation="$(
+    kubectl --context j64seg1opman \
+      -n "$namespace" \
+      get gitrepo "$name" \
+      -o jsonpath='{.spec.forceSyncGeneration}'
+  )"
+
+  generation="${generation:-0}"
+
+  kubectl --context j64seg1opman \
+    -n "$namespace" \
+    patch gitrepo "$name" \
+    --type=merge \
+    -p "{\"spec\":{\"forceSyncGeneration\":$((generation + 1))}}"
+done
+```
+
+Fleet documents `spec.forceSyncGeneration` as the mechanism for forcing a GitRepo synchronization. ([Fleet][2])
+
+Then monitor:
+
+```bash
+kubectl --context j64seg1opman \
+  get gitrepos.fleet.cattle.io \
+  -A \
+  -w
+```
+
+The state should move from:
+
+```text
+Error
+Authentication required
+```
+
+to reconciliation and then Ready.
+
+## Most likely cause
+
+Given that the App Bundle exists but authentication fails, the highest-probability scenarios are:
+
+1. The files were updated **after** `fleet` or `onboard` ran, leaving stale values in `kmm-git-credentials`.
+2. The runtime file uses `FLEET_GIT_TOKEN_FILE` instead of the required `FLEET_GIT_PASSWORD_FILE`.
+3. A deploy token is being used with your normal GitLab username rather than its generated deploy-token username.
+4. The token is expired, revoked, or missing `read_repository`.
+5. One of the files contains a hidden carriage return.
+
+No cluster rebuild is required for this error. Reconcile the runtime file, validate with `git ls-remote`, recreate the Kubernetes Secret, and increment `forceSyncGeneration`.
+
+[1]: https://docs.gitlab.com/user/project/deploy_tokens/?utm_source=chatgpt.com "Deploy tokens | GitLab Docs"
+[2]: https://fleet.rancher.io/reference/ref-gitrepo?utm_source=chatgpt.com "GitRepo Resource"
+
+
+
+
+Use **`k8admin:k8admin` ownership**, `0700` on directories, and `0600` on configuration and secret files.
+
+```bash
+CONFIG_ROOT="$HOME/.config/k8mm-seg1opdev-multicluster"
+
+sudo chown -R "$(id -un):$(id -gn)" "$CONFIG_ROOT"
+
+find "$CONFIG_ROOT" -type d -exec chmod 700 {} \;
+find "$CONFIG_ROOT" -type f -exec chmod 600 {} \;
+```
+
+That should produce:
+
+```text
+~/.config/k8mm-seg1opdev-multicluster/                 700
+~/.config/k8mm-seg1opdev-multicluster/secrets/         700
+~/.config/k8mm-seg1opdev-multicluster/fleet-bootstrap.env 600
+~/.config/k8mm-seg1opdev-multicluster/secrets/fleet-git-username 600
+~/.config/k8mm-seg1opdev-multicluster/secrets/fleet-git-token    600
+```
+
+Verify:
+
+```bash
+namei -l "$CONFIG_ROOT/secrets/fleet-git-token"
+
+find "$CONFIG_ROOT" \
+  -printf '%M %u:%g %p\n'
+```
+
+One important caveat: the deployment scripts must run as the same user that owns these files—normally `k8admin`. Running the deployment with `sudo` may change `$HOME` to `/root` or make the scripts look under `/root/.config`, depending on how the script handles environment variables.
+
+Use:
+
+```bash
+./scripts/deploy-platform.sh onboard
+```
+
+rather than:
+
+```bash
+sudo ./scripts/deploy-platform.sh onboard
+```
+
+For this directory, making every file `0600` is the cleanest security baseline. There is no operational reason for the Git username, token, or bootstrap environment file to be group-readable.
