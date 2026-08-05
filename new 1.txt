@@ -1,3 +1,138 @@
+Yes—this is materially better. The **bundle-discovery and namespace-ownership fixes worked**:
+
+* Fleet fetched the new commit `d537b90`.
+* The missing Helm-only bundles are now being generated.
+* `22 of 34` downstream resources have applied.
+* The deployment has narrowed to two real root blockers:
+
+  * `fleet-default`: `cert-manager`
+  * `fleet-local`: `trident-operator`
+
+Everything depending on those roots is being held back by Fleet’s `dependsOn` logic. Fleet does not deploy a dependent bundle until its dependency reaches `Ready`; the GitRepo dashboard then aggregates those BundleDeployment failures upward. ([Fleet][1])
+
+## Pull the actual root errors
+
+Run this on the management cluster:
+
+```bash
+for ref in \
+  fleet-default/cert-manager \
+  fleet-local/trident-operator
+do
+  namespace="${ref%%/*}"
+  bundle="${ref##*/}"
+
+  echo
+  echo "============================================================"
+  echo "${namespace}/${bundle}"
+  echo "============================================================"
+
+  kubectl --context j64seg1opman \
+    -n "$namespace" \
+    get bundle "$bundle" \
+    -o json |
+  jq '{
+    name: .metadata.name,
+    generation: .metadata.generation,
+    ready: .status.ready,
+    summary: .status.summary,
+    conditions: .status.conditions
+  }'
+done
+```
+
+Then locate their BundleDeployments and print the detailed condition messages:
+
+```bash
+for bundle in cert-manager trident-operator; do
+  echo
+  echo "================ ${bundle} BundleDeployments ================"
+
+  kubectl --context j64seg1opman \
+    get bundledeployments.fleet.cattle.io -A -o json |
+  jq -r --arg bundle "$bundle" '
+    .items[]
+    | select(
+        (.metadata.labels["fleet.cattle.io/bundle-name"] // "") == $bundle
+        or (.metadata.name | startswith($bundle + "-"))
+      )
+    | "Namespace: \(.metadata.namespace)\n" +
+      "Name:      \(.metadata.name)\n" +
+      (
+        (.status.conditions // [])
+        | map(
+            "  \(.type)=\(.status) reason=\(.reason // "-")\n" +
+            "  message=\(.message // "-")"
+          )
+        | join("\n")
+      ) + "\n"
+  '
+done
+```
+
+Fleet’s troubleshooting guidance specifically recommends examining the affected `BundleDeployment.status.conditions`, because that is where the underlying Helm, Kubernetes API, ownership, image-pull, or admission failure is exposed. ([Fleet][2])
+
+## Check whether the Helm releases were created
+
+```bash
+for ctx in j64seg1opman j64seg1opdev j52seg1opdev r01seg1opdev; do
+  echo
+  echo "===== ${ctx} ====="
+
+  kubectl --context "$ctx" \
+    get helmreleases.helm.cattle.io -A 2>/dev/null |
+  grep -Ei 'cert-manager|trident' || true
+done
+```
+
+Also check Helm-operation pods:
+
+```bash
+for ctx in j64seg1opman j64seg1opdev j52seg1opdev r01seg1opdev; do
+  echo
+  echo "===== ${ctx}: Helm operations ====="
+
+  kubectl --context "$ctx" \
+    get pods -A -o wide |
+  grep -E 'helm-operation|cert-manager|trident' || true
+done
+```
+
+## Likely failure domains
+
+For `cert-manager`, the root message will probably be one of:
+
+* Existing CRDs or release metadata from an earlier/manual installation
+* Pod Security rejection
+* OCI chart/image pull failure
+* Admission webhook not becoming ready
+* Namespace or ClusterRole ownership conflict
+
+For `trident-operator`, the common possibilities are:
+
+* Privileged PSA or security-context rejection
+* Missing host packages or iSCSI/multipath readiness
+* Chart/image pull failure
+* Existing Trident CRDs from a previous attempt
+* Operator pod failing against the Kubernetes API
+
+Do not change dependencies or add more retries yet. At this point Fleet is doing its job: it is correctly stopping the rollout behind the two unhealthy root bundles. The detailed BundleDeployment conditions will tell us exactly what repository correction is required.
+
+[1]: https://fleet.rancher.io/reference/ref-status-fields?utm_source=chatgpt.com "Status Fields :: Fleet"
+[2]: https://fleet.rancher.io/troubleshooting?utm_source=chatgpt.com "Troubleshooting :: Fleet"
+
+
+
+
+
+
+
+
+
+
+
+
+
 That error is **a weak diagnostic in the current repository**, not necessarily proof that the Fleet bundle definitions are wrong.
 
 In the latest ZIP, `scripts/management/fleet/04-validate-fleet.sh`:
