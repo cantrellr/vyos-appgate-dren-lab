@@ -1,3 +1,104 @@
+Yep—this is close. Fleet is now at **31 of 37 resources applied**. The dependency graph has collapsed to three root blockers:
+
+* `fleet-default`: `metallb`
+* `fleet-default`: `istiod`
+* `fleet-local`: `istio-base`
+
+Everything else is mostly downstream fallout.
+
+The `metallb` failure may be the same sequencing defect we just fixed for cert-manager: the bundle may be installing the MetalLB chart and immediately applying `IPAddressPool` / `L2Advertisement` resources before the MetalLB CRDs are established. Don’t patch that blind yet—pull the actual errors first.
+
+```bash
+for ref in \
+  fleet-default/metallb \
+  fleet-default/istiod \
+  fleet-local/istio-base
+do
+  namespace="${ref%%/*}"
+  bundle="${ref##*/}"
+
+  echo
+  echo "============================================================"
+  echo "${namespace}/${bundle}"
+  echo "============================================================"
+
+  kubectl --context j64seg1opman \
+    -n "$namespace" \
+    get bundle "$bundle" \
+    -o json |
+  jq '{
+    name: .metadata.name,
+    generation: .metadata.generation,
+    summary: .status.summary,
+    conditions: .status.conditions
+  }'
+done
+```
+
+Then show the underlying BundleDeployment messages:
+
+```bash
+for bundle in metallb istiod istio-base; do
+  echo
+  echo "================ ${bundle} ================="
+
+  kubectl --context j64seg1opman \
+    get bundledeployments.fleet.cattle.io -A -o json |
+  jq -r --arg bundle "$bundle" '
+    .items[]
+    | select(
+        (.metadata.labels["fleet.cattle.io/bundle-name"] // "") == $bundle
+        or (.metadata.name | startswith($bundle + "-"))
+      )
+    | "Namespace: \(.metadata.namespace)\n" +
+      "Name:      \(.metadata.name)\n" +
+      (
+        (.status.conditions // [])
+        | map(
+            "  \(.type)=\(.status) reason=\(.reason // "-")\n" +
+            "  message=\(.message // "-")"
+          )
+        | join("\n")
+      ) + "\n"
+  '
+done
+```
+
+Also get the runtime state:
+
+```bash
+for ctx in j64seg1opman j64seg1opdev j52seg1opdev r01seg1opdev; do
+  echo
+  echo "===== ${ctx} ====="
+
+  kubectl --context "$ctx" \
+    get pods -n metallb-system -o wide 2>/dev/null || true
+
+  kubectl --context "$ctx" \
+    get pods -n istio-system -o wide 2>/dev/null || true
+done
+```
+
+My working expectation:
+
+* **MetalLB:** likely needs a `20-metallb` chart bundle and a separate `21-metallb-config` bundle for the pool and advertisement CRs.
+* **Istio base:** likely a Helm rendering, CRD ownership, or anchor-drift issue.
+* **Istiod:** probably blocked by `istio-base`, so it may clear automatically once base is Ready.
+
+At this point, don’t rebuild anything. The platform plumbing is working; we’re down to correcting the last couple of bundle boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
 Yes—this is materially better. The **bundle-discovery and namespace-ownership fixes worked**:
 
 * Fleet fetched the new commit `d537b90`.
